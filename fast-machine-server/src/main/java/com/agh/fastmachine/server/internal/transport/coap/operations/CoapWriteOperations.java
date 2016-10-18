@@ -3,15 +3,11 @@ package com.agh.fastmachine.server.internal.transport.coap.operations;
 import com.agh.fastmachine.core.api.model.resourcevalue.OpaqueResourceValue;
 import com.agh.fastmachine.core.internal.parser.WriteParser;
 import com.agh.fastmachine.core.internal.MediaTypeRegistry;
-import com.agh.fastmachine.core.internal.visitor.writer.AbstractWriterVisitor;
-import com.agh.fastmachine.core.internal.visitor.writer.PlainTextWriterVisitor;
-import com.agh.fastmachine.core.internal.visitor.writer.TLVWriterVisitor;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
 import com.agh.fastmachine.server.api.model.ObjectMultipleResourceProxy;
 import com.agh.fastmachine.server.api.model.ObjectResourceProxy;
-import com.agh.fastmachine.server.internal.transport.coap.CoapTransportLayer;
-import com.agh.fastmachine.server.internal.transport.operations.AbstractOperations;
+import com.agh.fastmachine.server.internal.transport.coap.CoapTransport;
 import com.agh.fastmachine.server.internal.transport.operations.WriteOperations;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
@@ -19,7 +15,7 @@ import org.eclipse.californium.core.CoapServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CoapWriteOperations extends WriteOperations<CoapTransportLayer> {
+public class CoapWriteOperations extends WriteOperations<CoapTransport> {
     private static final Logger LOG = LoggerFactory.getLogger(CoapWriteOperations.class);
     private CoapServer coapServer;
     private int port;
@@ -66,7 +62,7 @@ public class CoapWriteOperations extends WriteOperations<CoapTransportLayer> {
 
     private void handleFailures(CoapResponse response, String requestEndpoint) {
         if (!response.isSuccess()) {
-            LOG.error("Failed to write to object {} on client {}. Response code: {}", requestEndpoint, response.getCode());
+            LOG.error("Failed to write to object {} on client {}. Lwm2mResponse code: {}", requestEndpoint, response.getCode());
         }
     }
 }

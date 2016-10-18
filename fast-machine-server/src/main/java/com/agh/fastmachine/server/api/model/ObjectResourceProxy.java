@@ -49,7 +49,7 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.readOperations(clientProxy).read(this);
+        transport.readOperations(clientProxy).read(this);
     }
 
     public void write() {
@@ -57,7 +57,7 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
             throw new ObjectDeletedException();
         }
         if (isChanged) {
-            transportLayer.writeOperations(clientProxy).write(this);
+            transport.writeOperations(clientProxy).write(this);
             isChanged = false;
         }
     }
@@ -66,32 +66,32 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.discoverOperations(clientProxy).discover(this);
+        transport.discoverOperations(clientProxy).discover(this);
     }
 
     public void writeAttributes() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.writeAttributeOperations(clientProxy).writeAttributes(this);
+        transport.writeAttributeOperations(clientProxy).writeAttributes(this);
     }
 
     public void execute(byte[] arguments) {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.executeOperations(clientProxy).execute(this, arguments);
+        transport.executeOperations(clientProxy).execute(this, arguments);
     }
 
     public void observe(ObservationListener<ObjectResourceProxy<T>> listener) {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.observeOperations(clientProxy).observe(this, listener);
+        transport.observeOperations(clientProxy).observe(this, listener);
     }
 
     public void cancelObservation() {
-        transportLayer.observeOperations(clientProxy).cancelObservation(this);
+        transport.observeOperations(clientProxy).cancelObservation(this);
     }
 
     public boolean isChanged() {

@@ -50,10 +50,9 @@ public class ObjectTreeCreator {
         return new ObjectTree(objects, instanceClasses);
     }
 
-    public <T extends ObjectInstanceProxy> void connectToRemoteClient(T instance, int instanceId, ClientProxyImpl clientProxy) {
+    public <T extends ObjectInstanceProxy> void connectToRemoteClient(T instance, ClientProxyImpl clientProxy) {
         ObjectBaseProxy objectForInstance = clientProxy.getObjectTree().getObjectForType(instance.getClass());
         instance.internal().setObject(objectForInstance);
-        instance.internal().setId(instanceId);
 
         initializeInstance(instance, clientProxy, null);
         makeResourcesRemote(instance, clientProxy);
@@ -75,7 +74,7 @@ public class ObjectTreeCreator {
 
     private void initializeObject(ObjectBaseProxy<?> object, String url, ClientProxyImpl clientProxy) {
         object.internal().updateAttributes(new Attributes(false));
-        object.internal().setTransportLayer(clientProxy.getTransportLayer());
+        object.internal().setTransportLayer(clientProxy.getTransport());
         object.internal().setClientProxy(clientProxy);
         object.internal().setSupported(true);
         if (url != null && !url.isEmpty()) {
@@ -86,7 +85,7 @@ public class ObjectTreeCreator {
 
     private void initializeInstance(ObjectInstanceProxy instance, ClientProxyImpl clientProxy, String url) {
         instance.internal().updateAttributes(new Attributes(false));
-        instance.internal().setTransportLayer(clientProxy.getTransportLayer());
+        instance.internal().setTransportLayer(clientProxy.getTransport());
         instance.internal().setClientProxy(clientProxy);
         instance.internal().setSupported(true);
         instance.internal().setUrl(url);
@@ -94,7 +93,7 @@ public class ObjectTreeCreator {
 
     private void initializeResource(ObjectResourceProxy<?> resource, Class<?> resourceValueClass, ClientProxyImpl clientProxy) {
         resource.internal().updateAttributes(new Attributes(isNumericValue(resourceValueClass)));
-        resource.internal().setTransportLayer(clientProxy.getTransportLayer());
+        resource.internal().setTransportLayer(clientProxy.getTransport());
         resource.internal().setClientProxy(clientProxy);
         resource.internal().setSupported(true);
     }

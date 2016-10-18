@@ -4,21 +4,20 @@ import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
-import com.agh.fastmachine.server.internal.parser.RegistrationInfoParser;
 import com.agh.fastmachine.server.api.model.ObjectTree;
-import com.agh.fastmachine.server.internal.transport.TransportLayer;
-import org.eclipse.californium.core.CoapServer;
+import com.agh.fastmachine.server.internal.transport.Transport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ClientProxyImpl extends BaseRegistrationListener implements ClientProxy {
     private static final Logger LOG = LoggerFactory.getLogger(ClientProxyImpl.class);
 
-    private TransportLayer transportLayer;
+    private Transport transport;
     private ObjectTree objectTree;
     private ClientProxyStatus status;
     private String endpointClientName;
     private String registrationEndpoint;
+    private String clientId;
     private String clientUrl;
     private final Server server;
     private RegistrationInfo registrationInfo;
@@ -27,17 +26,22 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
         this.server = server;
         this.endpointClientName = endpointClientName;
         this.status = ClientProxyStatus.CREATED;
-        this.transportLayer = server.internal().getTransportLayer();
+        this.transport = server.internal().getTransportLayer();
     }
 
     @Override
     public <T extends ObjectInstanceProxy> void create(T patternInstance) {
-        transportLayer.createOperations(this).create(patternInstance);
+        transport.createOperations(this).create(patternInstance);
     }
 
     @Override
     public <T extends ObjectInstanceProxy> void create(T patternInstance, int id) {
-        transportLayer.createOperations(this).create(patternInstance, id);
+        transport.createOperations(this).create(patternInstance, id);
+    }
+
+    @Override
+    public String getClientId() {
+        return clientId;
     }
 
     @Override
@@ -81,8 +85,8 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
         this.objectTree = objectTree;
     }
 
-    public TransportLayer getTransportLayer() {
-        return transportLayer;
+    public Transport getTransport() {
+        return transport;
     }
 
     public Server getServer() {

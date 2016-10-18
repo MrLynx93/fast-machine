@@ -33,23 +33,23 @@ public class ObjectBaseProxy<T extends ObjectInstanceProxy> extends ObjectNodePr
     }
 
     public void read() {
-        transportLayer.readOperations(clientProxy).read(this);
+        transport.readOperations(clientProxy).read(this);
     }
 
     public void discover() {
-        transportLayer.discoverOperations(clientProxy).discover(this);
+        transport.discoverOperations(clientProxy).discover(this);
     }
 
     public void writeAttributes() {
-        transportLayer.writeAttributeOperations(clientProxy).writeAttributes(this);
+        transport.writeAttributeOperations(clientProxy).writeAttributes(this);
     }
 
     public void observe(ObservationListener<ObjectBaseProxy<T>> listener) {
-        transportLayer.observeOperations(clientProxy).observe(this, listener);
+        transport.observeOperations(clientProxy).observe(this, listener);
     }
 
     public void cancelObservation() {
-        transportLayer.observeOperations(clientProxy).cancelObservation(this);
+        transport.observeOperations(clientProxy).cancelObservation(this);
     }
 
     public boolean isChanged() {

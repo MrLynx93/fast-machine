@@ -6,7 +6,7 @@ import com.agh.fastmachine.server.internal.ObjectTreeCreator;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.client.ClientProxyStatus;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
-import com.agh.fastmachine.server.internal.transport.coap.CoapTransportLayer;
+import com.agh.fastmachine.server.internal.transport.coap.CoapTransport;
 import org.eclipse.californium.core.coap.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,7 @@ public class RegistrationService {
     }
 
     public RegistrationInfo parseRegistrationInfo(Request request) {
-        return ((CoapTransportLayer)server.internal().getTransportLayer()).parseRegistrationInfo(request);
+        return ((CoapTransport)server.internal().getTransportLayer()).parseRegistrationInfo(request);
     }
 
     private String getNextUpdateUrl() {

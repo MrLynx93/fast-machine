@@ -5,9 +5,9 @@ import com.agh.fastmachine.server.internal.client.ClientManager;
 import com.agh.fastmachine.server.internal.service.BootstrapService;
 import com.agh.fastmachine.server.internal.service.RegistrationService;
 import com.agh.fastmachine.server.api.listener.RegistrationListener;
-import com.agh.fastmachine.server.internal.transport.coap.CoapTransportLayer;
-import com.agh.fastmachine.server.internal.transport.TransportLayer;
-import com.agh.fastmachine.server.internal.transport.coap.CoapTransportConfiguration;
+import com.agh.fastmachine.server.internal.transport.coap.CoapTransport;
+import com.agh.fastmachine.server.internal.transport.Transport;
+import com.agh.fastmachine.server.internal.transport.coap.CoapConfiguration;
 import com.agh.fastmachine.server.internal.transport.TransportConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ public class Server {
     private ClientManager clientManager = new ClientManager(this);
     private BootstrapService bootstrapService;
     private RegistrationService registrationService;
-    private TransportLayer transportLayer;
+    private Transport transport;
     private ServerConfiguration configuration;
     private Internal internal = new Internal();
 
@@ -30,14 +30,14 @@ public class Server {
 
         TransportConfiguration transportConfiguration = null;
         if (configuration.getTransport() == ServerConfiguration.TRASPORT_COAP) {
-            transportLayer = new CoapTransportLayer();
+            transport = new CoapTransport();
             transportConfiguration = createCoapTransportConfiguration();
         }
-        transportLayer.start(transportConfiguration);
+        transport.start(transportConfiguration);
     }
 
     public void stop() {
-        transportLayer.stop();
+        transport.stop();
     }
 
     public void setConfiguration(ServerConfiguration configuration) {
@@ -64,8 +64,8 @@ public class Server {
         clientManager.setRegistrationListener(listener);
     }
 
-    private CoapTransportConfiguration createCoapTransportConfiguration() {
-        CoapTransportConfiguration coapConfiguration = new CoapTransportConfiguration();
+    private CoapConfiguration createCoapTransportConfiguration() {
+        CoapConfiguration coapConfiguration = new CoapConfiguration();
         coapConfiguration.setPort(configuration.getPort());
         coapConfiguration.setServer(this);
         return coapConfiguration;
@@ -86,8 +86,8 @@ public class Server {
             return bootstrapService;
         }
 
-        public TransportLayer getTransportLayer() {
-            return transportLayer;
+        public Transport getTransportLayer() {
+            return transport;
         }
 
         public ObjectTreeCreator getObjectTreeCreator() {

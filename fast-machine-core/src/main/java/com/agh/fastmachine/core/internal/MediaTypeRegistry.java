@@ -1,7 +1,6 @@
 package com.agh.fastmachine.core.internal;
 
 public enum MediaTypeRegistry {
-
     PLAIN_TEXT(1540, "application/vnd.oma.lwm2m+text"),
     TLV(1541, "application/vnd.oma.lwm2m+tlv"),
     JSON(1542, "application/vnd.oma.lwm2m+json"),

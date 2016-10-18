@@ -4,7 +4,7 @@ import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
 import com.agh.fastmachine.server.api.model.ObjectResourceProxy;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
-import com.agh.fastmachine.server.internal.transport.coap.CoapTransportLayer;
+import com.agh.fastmachine.server.internal.transport.coap.CoapTransport;
 import com.agh.fastmachine.server.internal.transport.operations.WriteAttributeOperations;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
@@ -13,7 +13,7 @@ import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CoapWriteAttributeOperations extends WriteAttributeOperations<CoapTransportLayer> {
+public class CoapWriteAttributeOperations extends WriteAttributeOperations<CoapTransport> {
     private static final Logger LOG = LoggerFactory.getLogger(CoapWriteAttributeOperations.class);
     private CoapServer coapServer;
     private int port;
@@ -54,7 +54,7 @@ public class CoapWriteAttributeOperations extends WriteAttributeOperations<CoapT
 
     private void handleFailures(CoapResponse response, String requestEndpoint) {
         if (!response.isSuccess()) {
-            LOG.error("Failed to write attributes to {} on client {}. Response code: {}", requestEndpoint, clientProxy.getClientEndpointName(), response.getCode());
+            LOG.error("Failed to write attributes to {} on client {}. Lwm2mResponse code: {}", requestEndpoint, clientProxy.getClientEndpointName(), response.getCode());
         }
     }
 }

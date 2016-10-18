@@ -2,8 +2,7 @@ package com.agh.fastmachine.server.internal.transport.coap.operations;
 
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
-import com.agh.fastmachine.server.internal.transport.coap.CoapTransportLayer;
-import com.agh.fastmachine.server.internal.transport.operations.AbstractOperations;
+import com.agh.fastmachine.server.internal.transport.coap.CoapTransport;
 import com.agh.fastmachine.server.internal.transport.operations.DeleteOperations;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
@@ -11,7 +10,7 @@ import org.eclipse.californium.core.CoapServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CoapDeleteOperations extends DeleteOperations<CoapTransportLayer> {
+public class CoapDeleteOperations extends DeleteOperations<CoapTransport> {
     private static final Logger LOG = LoggerFactory.getLogger(CoapDeleteOperations.class);
     private CoapServer coapServer;
     private final int port;
@@ -37,7 +36,7 @@ public class CoapDeleteOperations extends DeleteOperations<CoapTransportLayer> {
 
     private void handleFailures(CoapResponse response, String requestEndpoint) {
         if (!response.isSuccess()) {
-            LOG.error("Failed to delete object {} from client {}. Response code: {}", requestEndpoint, clientProxy.getClientEndpointName(), response.getCode());
+            LOG.error("Failed to delete object {} from client {}. Lwm2mResponse code: {}", requestEndpoint, clientProxy.getClientEndpointName(), response.getCode());
         }
     }
 }

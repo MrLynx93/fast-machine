@@ -5,9 +5,7 @@ import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
 import com.agh.fastmachine.server.api.model.ObjectResourceProxy;
-import com.agh.fastmachine.core.internal.parser.WriteAttributesParser;
-import com.agh.fastmachine.server.internal.transport.coap.CoapTransportLayer;
-import com.agh.fastmachine.server.internal.transport.operations.AbstractOperations;
+import com.agh.fastmachine.server.internal.transport.coap.CoapTransport;
 import com.agh.fastmachine.server.internal.transport.operations.DiscoverOperations;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
@@ -19,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
-public class CoapDiscoverOperations extends DiscoverOperations<CoapTransportLayer> {
+public class CoapDiscoverOperations extends DiscoverOperations<CoapTransport> {
     private static final Logger LOG = LoggerFactory.getLogger(CoapDiscoverOperations.class);
     private CoapServer coapServer;
     private int port;
@@ -92,7 +90,7 @@ public class CoapDiscoverOperations extends DiscoverOperations<CoapTransportLaye
 
     private void handleFailures(CoapResponse response, String requestEndpoint) {
         if (!response.isSuccess()) {
-            LOG.error("Failed to discover: {}. Response code: {}", requestEndpoint, response.getCode());
+            LOG.error("Failed to discover: {}. Lwm2mResponse code: {}", requestEndpoint, response.getCode());
         }
     }
 

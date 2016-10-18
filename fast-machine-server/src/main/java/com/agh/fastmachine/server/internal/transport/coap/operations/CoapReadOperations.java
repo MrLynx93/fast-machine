@@ -8,7 +8,7 @@ import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
 import com.agh.fastmachine.server.api.model.ObjectMultipleResourceProxy;
 import com.agh.fastmachine.server.api.model.ObjectResourceProxy;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
-import com.agh.fastmachine.server.internal.transport.coap.CoapTransportLayer;
+import com.agh.fastmachine.server.internal.transport.coap.CoapTransport;
 import com.agh.fastmachine.server.internal.transport.operations.ReadOperations;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
@@ -17,7 +17,7 @@ import org.eclipse.californium.core.coap.CoAP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CoapReadOperations extends ReadOperations<CoapTransportLayer> {
+public class CoapReadOperations extends ReadOperations<CoapTransport> {
     private static final Logger LOG = LoggerFactory.getLogger(CoapReadOperations.class);
     private CoapServer coapServer;
     private int port;

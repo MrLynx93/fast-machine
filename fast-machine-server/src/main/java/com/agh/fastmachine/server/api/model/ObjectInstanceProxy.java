@@ -58,7 +58,7 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.readOperations(clientProxy).read(this);
+        transport.readOperations(clientProxy).read(this);
     }
 
     public void write() {
@@ -72,7 +72,7 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
             ObjectInstanceProxy instance = (ObjectInstanceProxy) factory.createObjectInstance(this.getId(), modifiedResources);
             instance.internal().setObject(this.object);
 
-            transportLayer.writeOperations(clientProxy).write(instance);
+            transport.writeOperations(clientProxy).write(instance);
 
             for (ObjectResourceModel<?> resource : modifiedResources.values()) {
                 ((ObjectResourceProxy<?>) resource).internal().setChanged(false);
@@ -84,21 +84,21 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.discoverOperations(clientProxy).discover(this);
+        transport.discoverOperations(clientProxy).discover(this);
     }
 
     public void writeAttributes() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.writeAttributeOperations(clientProxy).writeAttributes(this);
+        transport.writeAttributeOperations(clientProxy).writeAttributes(this);
     }
 
     public void delete() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.deleteOperations(clientProxy).delete(this);
+        transport.deleteOperations(clientProxy).delete(this);
         object.getObjectInstances().remove(this.getId());
 //        object.getObjectInternalInstances().remove(this.getId());
 
@@ -112,14 +112,14 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.observeOperations(clientProxy).observe(this, (ObservationListener<ObjectInstanceProxy>) listener);
+        transport.observeOperations(clientProxy).observe(this, (ObservationListener<ObjectInstanceProxy>) listener);
     }
 
     public void cancelObservation() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transportLayer.observeOperations(clientProxy).cancelObservation(this);
+        transport.observeOperations(clientProxy).cancelObservation(this);
     }
 
     public boolean isChanged() {
