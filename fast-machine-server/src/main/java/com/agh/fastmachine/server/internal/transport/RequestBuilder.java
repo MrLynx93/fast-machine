@@ -2,8 +2,16 @@ package com.agh.fastmachine.server.internal.transport;
 
 import com.agh.fastmachine.core.api.model.resourcevalue.OpaqueResourceValue;
 import com.agh.fastmachine.server.api.model.*;
+import com.agh.fastmachine.server.internal.transport.coap.message.Lwm2mCoapRequest;
+
+import java.security.SecureRandom;
+import java.util.Random;
 
 public abstract class RequestBuilder<REQ extends Lwm2mRequest> {
+    private static final char[] CHARSET = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
+    private static final int TOKEN_LENGTH = 8;
+
+    public abstract REQ buildCreateRequest(ObjectInstanceProxy instance, int id);
     public abstract REQ buildCreateRequest(ObjectInstanceProxy instance);
     public abstract REQ buildDeleteRequest(ObjectInstanceProxy instance);
     public abstract REQ buildDiscoverRequest(ObjectNodeProxy node);
@@ -39,6 +47,14 @@ public abstract class RequestBuilder<REQ extends Lwm2mRequest> {
     }
 
     public String generateToken() {
-        return null; // TODO
+        Random random = new SecureRandom();
+        char[] result = new char[TOKEN_LENGTH];
+        for (int i = 0; i < result.length; i++) {
+            // picks a random index out of character set > random character
+            int randomCharIndex = random.nextInt(CHARSET.length);
+            result[i] = CHARSET[randomCharIndex];
+        }
+        return new String(result);
     }
+
 }

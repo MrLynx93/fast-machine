@@ -1,6 +1,5 @@
 package com.agh.fastmachine.client.api.model;
 
-import com.agh.fastmachine.client.internal.exception.UnsupportedWriteAttributeException;
 import com.agh.fastmachine.client.internal.message.request.Lwm2mContentRequest;
 import com.agh.fastmachine.client.internal.message.request.Lwm2mRequest;
 import com.agh.fastmachine.client.internal.message.request.Lwm2mWriteAttributeRequest;
@@ -8,7 +7,6 @@ import com.agh.fastmachine.client.internal.message.response.Lwm2mNotifyResponse;
 import com.agh.fastmachine.client.internal.message.response.Lwm2mResponse;
 import com.agh.fastmachine.client.api.model.builtin.ServerObjectInstance;
 import org.eclipse.californium.core.CoapResource;
-import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
@@ -74,7 +72,8 @@ public class Lwm2mNodeCoapResource extends CoapResource {
         if (exchange.getRequestOptions().getURIPathCount() == 3) { // - /0/0/0 - resourcevalue path, therefore handle executelwm2mResponse = node.handleExecute();
             lwm2mResponse = node.handleExecute(new Lwm2mContentRequest(exchange, resolve));
         } else {
-            lwm2mResponse = node.handleCreate(new Lwm2mContentRequest(exchange, resolve));
+            Integer requestedId = exchange.getRequestOptions().getURIPathCount() == 2 ? Integer.parseInt(exchange.getRequestOptions().getUriPath().get(1)) : null;
+            lwm2mResponse = node.handleCreate(new Lwm2mContentRequest(exchange, resolve), requestedId);
         }
         lwm2mResponse.respond(exchange);
     }

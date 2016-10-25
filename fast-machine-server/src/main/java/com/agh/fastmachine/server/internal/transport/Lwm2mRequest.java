@@ -1,6 +1,5 @@
 package com.agh.fastmachine.server.internal.transport;
 
-import com.agh.fastmachine.server.internal.transport.LWM2M;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -10,7 +9,7 @@ import static com.agh.fastmachine.server.internal.transport.LWM2M.ContentType.PL
 @AllArgsConstructor
 public abstract class Lwm2mRequest {
     protected final LWM2M.ContentType contentType;
-    protected final Boolean observeFlag;
+    protected final boolean observeFlag;
     protected final byte[] payload;
 
     public abstract String getToken();

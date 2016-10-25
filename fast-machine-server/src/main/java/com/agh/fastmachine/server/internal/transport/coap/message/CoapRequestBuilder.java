@@ -12,9 +12,20 @@ import com.agh.fastmachine.server.internal.transport.RequestBuilder;
 public class CoapRequestBuilder extends RequestBuilder<Lwm2mCoapRequest> {
 
     @Override
+    public Lwm2mCoapRequest buildCreateRequest(ObjectInstanceProxy instance, int id) { // TODO insert ClientProxy (and id) into instance
+        return new Lwm2mCoapRequest(
+                LWM2M.Path.of(instance.getObjectId(), id),
+                LWM2M.Operation.M_CREATE,
+                generateToken(),
+                LWM2M.ContentType.TLV,
+                WriteParser.serialize(instance)
+        );
+    }
+
+    @Override
     public Lwm2mCoapRequest buildCreateRequest(ObjectInstanceProxy instance) { // TODO insert ClientProxy (and id) into instance
         return new Lwm2mCoapRequest(
-                instance.getPath(),
+                LWM2M.Path.of(instance.getObjectId()),
                 LWM2M.Operation.M_CREATE,
                 generateToken(),
                 LWM2M.ContentType.TLV,
@@ -104,11 +115,12 @@ public class CoapRequestBuilder extends RequestBuilder<Lwm2mCoapRequest> {
 
     @Override
     public Lwm2mCoapRequest buildWriteAttributesRequest(ObjectNodeProxy<?> node) {
-        return new Lwm2mCoapRequest(
+        return new Lwm2mCoapWriteAttributesRequest(
                 node.getPath(),
                 LWM2M.Operation.M_WRITE_ATTRIBUTE,
                 generateToken(),
-                LWM2M.ContentType.LINK_FORMAT
+                LWM2M.ContentType.LINK_FORMAT,
+                node.getAttributes()
         );
     }
 

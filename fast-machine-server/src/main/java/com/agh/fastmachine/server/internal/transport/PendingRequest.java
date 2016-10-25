@@ -57,4 +57,8 @@ public class PendingRequest {
         condition.signal();
         lock.unlock();
     }
+
+    public boolean isCompleted() {
+        return responseCount > 0;
+    }
 }

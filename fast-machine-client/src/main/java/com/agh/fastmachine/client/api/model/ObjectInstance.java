@@ -1,6 +1,8 @@
 package com.agh.fastmachine.client.api.model;
 
 import com.agh.fastmachine.client.api.model.builtin.AccessControlObjectInstance;
+import com.agh.fastmachine.client.internal.message.request.Lwm2mContentRequest;
+import com.agh.fastmachine.client.internal.message.response.Lwm2mCreateResponse;
 import com.agh.fastmachine.client.internal.service.observation.ObserveSession;
 import com.agh.fastmachine.client.internal.visitor.ObjectNodeVisitor;
 import com.agh.fastmachine.core.api.model.annotation.Lwm2mResource;
@@ -108,5 +110,10 @@ public abstract class ObjectInstance extends AbstractLwm2mNode implements Object
 
     public void setParent(ObjectBase parent) {
         this.parent = parent;
+    }
+
+    @Override
+    public Lwm2mCreateResponse handleCreate(Lwm2mContentRequest request, Integer requestedId) {
+        return parent.handleCreate(request, requestedId);
     }
 }

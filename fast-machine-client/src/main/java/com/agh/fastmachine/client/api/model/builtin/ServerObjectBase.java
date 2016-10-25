@@ -8,9 +8,6 @@ import com.agh.fastmachine.client.api.model.ObjectBase;
 import com.agh.fastmachine.core.api.model.annotation.Lwm2mObject;
 import org.eclipse.californium.core.coap.CoAP;
 
-import java.util.Arrays;
-import java.util.List;
-
 @Lwm2mObject(id = 1)
 public class ServerObjectBase extends ObjectBase<ServerObjectInstance> {
 
@@ -31,8 +28,8 @@ public class ServerObjectBase extends ObjectBase<ServerObjectInstance> {
     }
 
     @Override
-    public Lwm2mCreateResponse<ServerObjectInstance> handleCreate(Lwm2mContentRequest request) {
-        Lwm2mCreateResponse<ServerObjectInstance> response = super.handleCreate(request);
+    public Lwm2mCreateResponse<ServerObjectInstance> handleCreate(Lwm2mContentRequest request, Integer requestedId) {
+        Lwm2mCreateResponse<ServerObjectInstance> response = super.handleCreate(request, null);
         if (response.code == CoAP.ResponseCode.CREATED) {
             client.getRegistrationInterface().registerIntoServer(response.getInstance());
         }

@@ -6,7 +6,8 @@ import com.agh.fastmachine.server.internal.transport.coap.COAP;
 import lombok.Data;
 import org.eclipse.californium.core.coap.Request;
 
-import static com.agh.fastmachine.server.internal.transport.LWM2M.ContentType.NO_FORMAT;
+import static com.agh.fastmachine.server.internal.transport.LWM2M.ContentType.*;
+import static com.agh.fastmachine.server.internal.transport.LWM2M.Operation.*;
 
 @Data
 public class Lwm2mCoapRequest extends Lwm2mRequest {
@@ -22,28 +23,37 @@ public class Lwm2mCoapRequest extends Lwm2mRequest {
     }
 
     Lwm2mCoapRequest(LWM2M.Path path, LWM2M.Operation operation, String token, LWM2M.ContentType contentType, byte[] payload) {
-        this(path, operation, token, contentType, payload, null);
+        this(path, operation, token, contentType, payload, false);
     }
 
 
     Lwm2mCoapRequest(LWM2M.Path path, LWM2M.Operation operation, String token, LWM2M.ContentType contentType) {
-        this(path, operation, token, contentType, null, null);
+        this(path, operation, token, contentType, null, false);
     }
 
     Lwm2mCoapRequest(LWM2M.Path path, LWM2M.Operation operation, String token) {
-        this(path, operation, token, NO_FORMAT, null, null);
+        this(path, operation, token, NO_FORMAT, null, false);
+    }
+
+    public String getCoapPath() {
+        return path.toString();
     }
 
     public Request toCoapRequest() {
         Request coapRequest = new Request(COAP.getCoapMethod(operation, path));
-        coapRequest.getOptions().setContentFormat(COAP.getContentTypeCode(contentType));
         coapRequest.setToken(token.getBytes());
         coapRequest.setPayload(payload);
 
-        if (operation == LWM2M.Operation.I_OBSERVE || operation == LWM2M.Operation.M_READ && observeFlag) {
+        int format = COAP.getContentTypeCode(contentType);
+        if (format >= 0) {
+            coapRequest.getOptions().setContentFormat(format);
+            coapRequest.getOptions().setAccept(format);
+        }
+
+        if (operation == I_OBSERVE || operation == M_READ && observeFlag) {
             coapRequest.setObserve();
         }
-        if (operation == LWM2M.Operation.I_CANCEL_OBSERVATION) {
+        if (operation == I_CANCEL_OBSERVATION) {
             coapRequest.setObserveCancel();
         }
         return coapRequest;

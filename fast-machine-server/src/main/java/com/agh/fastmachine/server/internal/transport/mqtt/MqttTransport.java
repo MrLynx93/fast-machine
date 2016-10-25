@@ -7,6 +7,7 @@ import com.agh.fastmachine.server.internal.service.RegistrationService;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationObjectInfo;
 import com.agh.fastmachine.server.internal.transport.LWM2M;
+import com.agh.fastmachine.server.internal.transport.Lwm2mRequest;
 import com.agh.fastmachine.server.internal.transport.Lwm2mResponse;
 import com.agh.fastmachine.server.internal.transport.Transport;
 import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttRegisterRequest;
@@ -70,6 +71,11 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
         } catch (MqttException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected boolean isNotify(Lwm2mRequest request, Lwm2mResponse response) {
+        return request.getOperation() == LWM2M.Operation.I_NOTIFY && response.isSuccess();
     }
 
     private MqttCallback mqttCallback = new MqttCallback() {

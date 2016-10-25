@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import static com.agh.fastmachine.server.internal.transport.LWM2M.ContentType.LINK_FORMAT;
 import static com.agh.fastmachine.server.internal.transport.LWM2M.ContentType.PLAIN_TEXT;
 
 @Data
@@ -21,7 +22,7 @@ public abstract class Lwm2mResponse {
     }
 
     public String getPayloadText() {
-        if (contentType != PLAIN_TEXT) {
+        if (contentType != PLAIN_TEXT && contentType != LINK_FORMAT) {
             throw new UnsupportedOperationException("Message is not of type (text/plain)");
         }
         return new String(payload);

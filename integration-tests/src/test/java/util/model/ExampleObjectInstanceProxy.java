@@ -29,7 +29,4 @@ public class ExampleObjectInstanceProxy extends ObjectInstanceProxy {
     @Lwm2mResource(id = 5)
     public ObjectMultipleResourceProxy<IntegerResourceValue> multipleIntegerResource;
 
-    public ExampleObjectInstanceProxy(int id) {
-        super(id);
-    }
 }

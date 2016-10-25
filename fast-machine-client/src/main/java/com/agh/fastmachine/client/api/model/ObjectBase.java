@@ -15,7 +15,6 @@ import com.agh.fastmachine.client.internal.service.observation.ObserveSession;
 import com.agh.fastmachine.client.internal.access.CreateAccessVerifier;
 import com.agh.fastmachine.client.internal.visitor.ObjectNodeVisitor;
 import com.agh.fastmachine.core.api.model.annotation.Lwm2mObject;
-import com.agh.fastmachine.core.api.model.annotation.Lwm2mObjectInstance;
 import com.agh.fastmachine.core.api.model.annotation.Lwm2mResource;
 import com.agh.fastmachine.core.api.model.annotation.SingleInstance;
 import com.agh.fastmachine.core.internal.model.ObjectBaseModel;
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public abstract class ObjectBase<T extends ObjectInstance> extends AbstractLwm2mNode implements ObjectBaseModel<T> {
@@ -45,7 +43,7 @@ public abstract class ObjectBase<T extends ObjectInstance> extends AbstractLwm2m
 
     public ObjectBase(Class<T> instanceClass) {
         this.id = getClass().getAnnotation(Lwm2mObject.class).id();
-        this.multipleInstancesAllowed = getClass().getAnnotation(SingleInstance.class) != null;
+        this.multipleInstancesAllowed = getClass().getAnnotation(SingleInstance.class) == null;
         this.instanceClass = instanceClass;
     }
 
@@ -86,7 +84,7 @@ public abstract class ObjectBase<T extends ObjectInstance> extends AbstractLwm2m
     }
 
     @Override
-    public Lwm2mCreateResponse<T> handleCreate(Lwm2mContentRequest request) {
+    public Lwm2mCreateResponse<T> handleCreate(Lwm2mContentRequest request, Integer requestedId) {
         try {
             int shortServerId = getShortServerId(request);
 

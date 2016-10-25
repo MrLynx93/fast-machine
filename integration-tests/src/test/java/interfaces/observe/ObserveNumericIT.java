@@ -26,7 +26,7 @@ public class ObserveNumericIT {
     private ObjectBaseProxy<ExampleObjectInstanceProxy> exampleObjectProxy;
     private ExampleObjectInstanceProxy exampleInstanceProxy;
     private ExampleObjectInstance exampleInstance;
-    private int gotNotifications = 0;
+    private volatile int gotNotifications = 0;
 
     @Test
     public void shouldObserveResourceWithStepAttribute() throws Exception {
@@ -215,7 +215,7 @@ public class ObserveNumericIT {
 
         // Set write attributes
         final Attributes attributes = exampleInstanceProxy.floatResource.getAttributes();
-        attributes.maximumPeriod = 100;
+        attributes.maximumPeriod = 10;
         attributes.minimumPeriod = 2;
         exampleInstanceProxy.floatResource.writeAttributes();
 

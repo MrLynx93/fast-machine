@@ -14,9 +14,24 @@ import static com.agh.fastmachine.server.internal.transport.LWM2M.Operation.*;
 public class MqttRequestBuilder extends RequestBuilder<Lwm2mMqttRequest> {
 
     @Override
-    public Lwm2mMqttRequest buildCreateRequest(ObjectInstanceProxy instance) { // TODO insert ClientProxy (and id) into instance
+    public Lwm2mMqttRequest buildCreateRequest(ObjectInstanceProxy instance, int id) {
+        MQTT.Topic topic = createTopic(instance, M_CREATE);
+        topic.setPath(LWM2M.Path.of(instance.getObject().getId(), id));
+
         return new Lwm2mMqttRequest(
-                createTopic(instance, M_CREATE),
+                topic,
+                LWM2M.ContentType.TLV,
+                WriteParser.serialize(instance)
+        );
+    }
+
+    @Override
+    public Lwm2mMqttRequest buildCreateRequest(ObjectInstanceProxy instance) { // TODO insert ClientProxy (and id) into instance
+        MQTT.Topic topic = createTopic(instance, M_CREATE);
+        topic.setPath(LWM2M.Path.of(instance.getObject().getId()));
+
+        return new Lwm2mMqttRequest(
+                topic,
                 LWM2M.ContentType.TLV,
                 WriteParser.serialize(instance)
         );

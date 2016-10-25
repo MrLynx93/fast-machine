@@ -55,7 +55,7 @@ public class TLVWriterVisitor extends AbstractWriterVisitor {
         int index = 0;
 
         for (ObjectResourceModel<?> objectResource : objectInstance.getResources().values()) {
-            if (objectResource.getValue() != null) {
+            if (objectResource.getValue() != null && objectResource.getValue().value != null) {
                 objectResource.accept(this);
                 resources[index++] = content;
                 totalResourcesLength += content.length;

@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import org.eclipse.californium.core.CoapResponse;
 
+import java.util.List;
+
 @Data
 public class Lwm2mCoapResponse extends Lwm2mResponse {
     private final Integer createdInstanceId;
@@ -19,12 +21,15 @@ public class Lwm2mCoapResponse extends Lwm2mResponse {
     }
 
     public static Lwm2mCoapResponse fromCoapResponse(CoapResponse coapResponse) {
+        List<String> locationPath = coapResponse.getOptions().getLocationPath();
+        Integer createdInstanceId = locationPath.size() > 0 ? Integer.parseInt(locationPath.get(1)) : null;
+
         return new Lwm2mCoapResponse(
                 COAP.getContentType(coapResponse.getOptions().getContentFormat()),
                 COAP.getResponseCode(coapResponse.getCode()),
                 coapResponse.getPayload(),
-                Integer.parseInt(coapResponse.getOptions().getLocationPath().get(1)),
-                coapResponse.advanced().getTokenString()
+                createdInstanceId,
+                new String(coapResponse.advanced().getToken())
         );
     }
 }

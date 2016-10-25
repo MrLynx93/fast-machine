@@ -2,6 +2,8 @@ package com.agh.fastmachine.server.internal.transport.coap;
 
 import com.agh.fastmachine.server.internal.parser.RegistrationInfoParser;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
+import com.agh.fastmachine.server.internal.transport.LWM2M;
+import com.agh.fastmachine.server.internal.transport.Lwm2mRequest;
 import com.agh.fastmachine.server.internal.transport.Lwm2mResponse;
 import com.agh.fastmachine.server.internal.transport.Transport;
 import com.agh.fastmachine.server.internal.transport.coap.message.CoapRequestBuilder;
@@ -51,9 +53,14 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
 
     @Override
     protected void doSendRequest(Lwm2mCoapRequest request) {
-        CoapClient coapClient = new CoapClient(request.getPath().toString());
+        CoapClient coapClient = new CoapClient(request.getCoapPath());
         coapClient.setEndpoint(endpoint);
         coapClient.advanced(handler, request.toCoapRequest());
+    }
+
+    @Override
+    protected boolean isNotify(Lwm2mRequest request, Lwm2mResponse response) {
+        return (request.getOperation() == LWM2M.Operation.I_OBSERVE && response.isSuccess());
     }
 
     private CoapHandler handler = new CoapHandler() {

@@ -36,7 +36,8 @@ public class ObjectTreeCreator {
 
             try {
                 Class<? extends ObjectInstanceProxy> instanceClass = instanceClasses.get(objectId);
-                ObjectInstanceProxy instance = instanceClass.getConstructor(int.class).newInstance(instanceId);
+                ObjectInstanceProxy instance = instanceClass.newInstance();
+                instance.internal().setId(instanceId);
                 initializeInstance(instance, clientProxy, url);
                 for (ObjectResourceProxy<?> resource : instance.getResources().values()) {
                     initializeResource(resource, resource.getValueType(), clientProxy);
@@ -52,6 +53,7 @@ public class ObjectTreeCreator {
 
     public <T extends ObjectInstanceProxy> void connectToRemoteClient(T instance, ClientProxyImpl clientProxy) {
         ObjectBaseProxy objectForInstance = clientProxy.getObjectTree().getObjectForType(instance.getClass());
+        objectForInstance.addInstance(instance);
         instance.internal().setObject(objectForInstance);
 
         initializeInstance(instance, clientProxy, null);

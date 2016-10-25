@@ -42,7 +42,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
         PendingRequest pendingRequest = pendingRequests.get(token);
         Lwm2mRequest request = pendingRequest.getRequest();
 
-        if (isNotify(request, response)) {
+        if (isNotify(request, response) && pendingRequest.isCompleted()) {
             observeHandlers.get(token).onNotify(response);
         }
         if (isCancelObserve(request, response)) {
@@ -51,6 +51,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
         pendingRequest.complete(response);
     }
 
+    protected abstract boolean isNotify(Lwm2mRequest request, Lwm2mResponse response);
 
     public void startObserve(String token, ObserveHandler observeHandler) {
         observeHandlers.put(token, observeHandler);
@@ -75,8 +76,15 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
     }
 
     public void create(ObjectInstanceProxy instance, int instanceId) {
-        instance.internal().setId(instanceId); // TODO should this be in payload?
-        create(instance);
+        REQ request = requestBuilder.buildCreateRequest(instance, instanceId);
+        PendingRequest pendingRequest = sendRequest(request);
+
+        Lwm2mResponse response = pendingRequest.waitForCompletion();
+        if (response.isSuccess()) {
+            instance.internal().setId(response.getCreatedInstanceId());
+            connectToRemote(instance);
+            LOG.debug("Created object instance: {}", instance.getPath());
+        }
     }
 
     /********************  DELETE  ********************/
@@ -134,7 +142,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
 
         Lwm2mResponse response = pendingRequest.waitForCompletion();
         if (response.isSuccess()) {
-            Attributes attributes = writeAttributesParser.parseWriteAttributes(response.getPayloadText());
+            Attributes attributes = writeAttributesParser.parseResourceWriteAttributes(response.getPayloadText(), resource);
             if (attributes != null) {
                 resource.internal().updateAttributes(attributes);
             }
@@ -212,11 +220,11 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
         PendingRequest pendingRequest = sendRequest(request);
 
         Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            if (response.getContentType() == LWM2M.ContentType.OPAQUE) {
+        if (response.isSuccess()) { // TODO fix client, then operate basing on response.getContentType()
+            if (OpaqueResourceValue.class.equals(resource.getValueType())) {
                 OpaqueResourceValue newValue = new OpaqueResourceValue(response.getPayload());
                 resource.internal().update(newValue);
-            } else if (response.getContentType() == LWM2M.ContentType.TLV) {
+            } else if (resource instanceof ObjectMultipleResourceProxy) {
                 ObjectMultipleResourceProxy newValue = (ObjectMultipleResourceProxy<?>) readParser.deserialize(resource, response.getPayload());
                 resource.internal().update(newValue);
             } else {
@@ -264,10 +272,6 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
     private void connectToRemote(ObjectInstanceProxy instance) {
         ClientProxyImpl client = (ClientProxyImpl) instance.getClientProxy();
         client.getServer().internal().getObjectTreeCreator().connectToRemoteClient(instance, client); // TODO It doesn't look good
-    }
-
-    private boolean isNotify(Lwm2mRequest request, Lwm2mResponse response) {
-        return (request.getOperation() == LWM2M.Operation.I_NOTIFY && response.isSuccess());
     }
 
     private boolean isCancelObserve(Lwm2mRequest request, Lwm2mResponse response) {

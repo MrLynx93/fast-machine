@@ -23,7 +23,4 @@ public class SecurityObjectInstanceProxy extends ObjectInstanceProxy {
     @Lwm2mResource(id = 11)
     public ObjectResourceProxy<IntegerResourceValue> clientHoldOffTime;
 
-    public SecurityObjectInstanceProxy(int id) {
-        super(id);
-    }
 }

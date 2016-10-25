@@ -9,9 +9,6 @@ import com.agh.fastmachine.core.api.model.annotation.Lwm2mObject;
 import com.agh.fastmachine.core.api.model.annotation.SingleInstance;
 import org.eclipse.californium.core.coap.CoAP;
 
-import java.util.Arrays;
-import java.util.List;
-
 @SingleInstance
 @Lwm2mObject(id = 2)
 public class AccessControlObjectBase extends ObjectBase<AccessControlObjectInstance> {
@@ -26,7 +23,7 @@ public class AccessControlObjectBase extends ObjectBase<AccessControlObjectInsta
     }
 
     @Override
-    public Lwm2mCreateResponse<AccessControlObjectInstance> handleCreate(Lwm2mContentRequest request) {
+    public Lwm2mCreateResponse<AccessControlObjectInstance> handleCreate(Lwm2mContentRequest request, Integer requestedId) {
         return new Lwm2mCreateResponse<>(CoAP.ResponseCode.BAD_REQUEST, "Cannot create AccessControlObject manually");
     }
 

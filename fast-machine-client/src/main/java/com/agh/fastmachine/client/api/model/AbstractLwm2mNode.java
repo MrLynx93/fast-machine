@@ -24,6 +24,7 @@ import com.agh.fastmachine.core.internal.parser.ReadParser;
 import com.agh.fastmachine.core.internal.parser.WriteParser;
 import com.agh.fastmachine.core.api.model.Operations;
 import org.eclipse.californium.core.coap.CoAP;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,10 +141,10 @@ public abstract class AbstractLwm2mNode implements VisitableObjectNode, ObjectNo
     public Lwm2mResponse handleDiscover(Lwm2mRequest request) {
         String discoverResponse = DiscoverSerializer.createDiscoverResponse(this);
         LOG.debug("Server {} executed discover on node {}", request.getServerUri(), coapResource.getPath());
-        return new Lwm2mResponse(CoAP.ResponseCode.CONTENT, discoverResponse.getBytes(Charset.forName("UTF-8")));
+        return new Lwm2mResponse(CoAP.ResponseCode.CONTENT, discoverResponse.getBytes(Charset.forName("UTF-8")), MediaTypeRegistry.APPLICATION_LINK_FORMAT);
     }
 
-    public Lwm2mCreateResponse handleCreate(Lwm2mContentRequest request) {
+    public Lwm2mCreateResponse handleCreate(Lwm2mContentRequest request, Integer requestedId) {
         LOG.error("Create on node {} returning \'Method Not Allowed\'", coapResource.getPath());
         return new Lwm2mCreateResponse(CoAP.ResponseCode.METHOD_NOT_ALLOWED, "");
     }

@@ -38,7 +38,4 @@ public class ServerObjectInstanceProxy extends ObjectInstanceProxy {
     @Lwm2mResource(id = 8)
     public ObjectResourceProxy<BooleanResourceValue> triggerUpdate;
 
-    public ServerObjectInstanceProxy(int id) {
-        super(id);
-    }
 }
