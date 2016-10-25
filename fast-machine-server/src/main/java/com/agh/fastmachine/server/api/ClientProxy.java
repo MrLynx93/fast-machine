@@ -7,6 +7,7 @@ import com.agh.fastmachine.server.api.model.ObjectTree;
 public interface ClientProxy {
 //    public void bootstrap(String clientUrl);
     public String getClientId();
+    public String getServerId();
     public String getClientEndpointName();
     public ObjectTree getObjectTree();
     public ClientProxyStatus getStatus();

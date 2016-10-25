@@ -16,21 +16,22 @@ public final class MQTT {
         private String token;
         private String clientId;
         private String serverId;
-        private Integer objectId;
-        private Integer instanceId;
-        private Integer resourceId;
+        private LWM2M.Path path;
 
         public static Topic fromString(String topic) {
             String[] elements = topic.split("/");
+            LWM2M.Path path = LWM2M.Path.of(
+                    elements.length > 5 ? Integer.parseInt(elements[5]) : null,
+                    elements.length > 6 ? Integer.parseInt(elements[6]) : null,
+                    elements.length > 7 ? Integer.parseInt(elements[7]) : null
+            );
             return new Topic(
                     getOperationFromCode(elements[0]),
                     elements[1],
                     elements[2],
                     elements[3],
                     elements[4],
-                    elements.length > 5 ? Integer.parseInt(elements[5]) : null,
-                    elements.length > 6 ? Integer.parseInt(elements[6]) : null,
-                    elements.length > 7 ? Integer.parseInt(elements[7]) : null
+                    path
             );
         }
 
@@ -42,9 +43,9 @@ public final class MQTT {
             builder.append(token).append("/");
             builder.append(clientId).append("/");
             builder.append(serverId);
-            if (objectId != null) builder.append("/").append(objectId);
-            if (instanceId != null) builder.append("/").append(instanceId);
-            if (resourceId != null) builder.append("/").append(resourceId);
+            if (path.getObjectId() != null) builder.append("/").append(path.getObjectId());
+            if (path.getInstanceId() != null) builder.append("/").append(path.getInstanceId());
+            if (path.getResourceId() != null) builder.append("/").append(path.getResourceId());
             return builder.toString();
         }
     }
@@ -57,6 +58,17 @@ public final class MQTT {
             case OPAQUE:      return 3;
             case TLV:         return 4;
             default: throw new UnsupportedOperationException("Content-Type " + contentType + " is not defined");
+        }
+    }
+
+    public static LWM2M.ContentType parseContentTypeFromCode(byte code) {
+        switch (code) {
+            case 0: return LWM2M.ContentType.NO_FORMAT;
+            case 1: return LWM2M.ContentType.PLAIN_TEXT;
+            case 2: return LWM2M.ContentType.LINK_FORMAT;
+            case 3: return LWM2M.ContentType.OPAQUE;
+            case 4: return LWM2M.ContentType.TLV;
+            default: throw new UnsupportedOperationException("Content-Type " + code + " is not defined");
         }
     }
 
@@ -106,4 +118,18 @@ public final class MQTT {
         }
     }
 
+    public static byte getResponseCodeByte(LWM2M.ResponseCode responseCode) {
+        byte responseByte = 0;
+        if (responseCode.getCode() / 100 == 2) {
+            responseByte &= 0b10000000;
+        }
+        responseByte += (byte) (responseCode.getCode() % 100);
+        return responseByte;
+    }
+
+    public static LWM2M.ResponseCode parseResponseCodeFromByte(byte responseCodeByte) {
+        int code = responseCodeByte & 0b01111111;
+        code += (responseCodeByte & 0b10000000) > 0 ? 400 : 200;
+        return LWM2M.ResponseCode.valueOf(code);
+    }
 }

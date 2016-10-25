@@ -1,5 +1,6 @@
 package com.agh.fastmachine.server.internal.transport;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -53,6 +54,10 @@ public final class LWM2M {
             this.code = code;
         }
 
+        public int getCode() {
+            return code;
+        }
+
         public boolean isSuccess() {
             return this.code / 100 == 2;
         }
@@ -75,11 +80,27 @@ public final class LWM2M {
     }
 
     @Data
-    @AllArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class Path {
         private Integer objectId;
         private Integer instanceId;
         private Integer resourceId;
+
+        public static Path of(Integer objectId, Integer instanceId, Integer resourceId) {
+            return new Path(objectId, instanceId, resourceId);
+        }
+
+        public static Path of(Integer objectId, Integer instanceId) {
+            return new Path(objectId, instanceId, null);
+        }
+
+        public static Path of(Integer objectId) {
+            return new Path(objectId, null, null);
+        }
+
+        public static Path empty() {
+            return new Path(null, null, null);
+        }
 
         public static Path fromString(String path) {
             String[] elements = path.split("/");

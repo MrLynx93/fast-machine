@@ -1,17 +1,20 @@
-package com.agh.fastmachine.server.internal.transport.coap;
+package com.agh.fastmachine.server.internal.transport.coap.message;
 
-import com.agh.fastmachine.core.api.model.resourcevalue.OpaqueResourceValue;
 import com.agh.fastmachine.core.internal.parser.WriteParser;
-import com.agh.fastmachine.server.api.model.*;
+import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
+import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
+import com.agh.fastmachine.server.api.model.ObjectNodeProxy;
+import com.agh.fastmachine.server.api.model.ObjectResourceProxy;
 import com.agh.fastmachine.server.internal.transport.LWM2M;
 import com.agh.fastmachine.server.internal.transport.RequestBuilder;
 
 // TODO finish
-public class CoapRequestBuilder implements RequestBuilder<Lwm2mCoapRequest> {
+public class CoapRequestBuilder extends RequestBuilder<Lwm2mCoapRequest> {
 
+    @Override
     public Lwm2mCoapRequest buildCreateRequest(ObjectInstanceProxy instance) { // TODO insert ClientProxy (and id) into instance
-        return Lwm2mCoapRequest.of(
-                LWM2M.Path.fromString(instance.getPath()),
+        return new Lwm2mCoapRequest(
+                instance.getPath(),
                 LWM2M.Operation.M_CREATE,
                 generateToken(),
                 LWM2M.ContentType.TLV,
@@ -21,8 +24,8 @@ public class CoapRequestBuilder implements RequestBuilder<Lwm2mCoapRequest> {
 
     @Override
     public Lwm2mCoapRequest buildDeleteRequest(ObjectInstanceProxy instance) {
-        return Lwm2mCoapRequest.of(
-                LWM2M.Path.fromString(instance.getPath()),
+        return new Lwm2mCoapRequest(
+                instance.getPath(),
                 LWM2M.Operation.M_DELETE,
                 generateToken()
         );
@@ -30,8 +33,8 @@ public class CoapRequestBuilder implements RequestBuilder<Lwm2mCoapRequest> {
 
     @Override
     public Lwm2mCoapRequest buildDiscoverRequest(ObjectNodeProxy node) {
-        return Lwm2mCoapRequest.of(
-                LWM2M.Path.fromString(node.getPath()),
+        return new Lwm2mCoapRequest(
+                node.getPath(),
                 LWM2M.Operation.M_DISCOVER,
                 generateToken(),
                 LWM2M.ContentType.LINK_FORMAT
@@ -40,8 +43,8 @@ public class CoapRequestBuilder implements RequestBuilder<Lwm2mCoapRequest> {
 
     @Override
     public Lwm2mCoapRequest buildExecuteRequest(ObjectResourceProxy<?> resource, byte[] arguments) {
-        return Lwm2mCoapRequest.of(
-                LWM2M.Path.fromString(resource.getPath()),
+        return new Lwm2mCoapRequest(
+                resource.getPath(),
                 LWM2M.Operation.M_EXECUTE,
                 generateToken(),
                 LWM2M.ContentType.OPAQUE, // TODO argument should be String!!!
@@ -51,8 +54,8 @@ public class CoapRequestBuilder implements RequestBuilder<Lwm2mCoapRequest> {
 
     @Override
     public Lwm2mCoapRequest buildObserveRequest(ObjectNodeProxy<?> node) {
-        return Lwm2mCoapRequest.of(
-                LWM2M.Path.fromString(node.getPath()),
+        return new Lwm2mCoapRequest(
+                node.getPath(),
                 LWM2M.Operation.I_OBSERVE,
                 generateToken(),
                 LWM2M.ContentType.NO_FORMAT // TODO is that correct? Response for observe is empty?
@@ -60,9 +63,19 @@ public class CoapRequestBuilder implements RequestBuilder<Lwm2mCoapRequest> {
     }
 
     @Override
+    public Lwm2mCoapRequest buildCancelObserveRequest(ObjectNodeProxy<?> node) {
+        return new Lwm2mCoapRequest(
+                node.getPath(),
+                LWM2M.Operation.I_CANCEL_OBSERVATION,
+                generateToken(),
+                LWM2M.ContentType.NO_FORMAT
+        );
+    }
+
+    @Override
     public Lwm2mCoapRequest buildReadRequest(ObjectBaseProxy<?> object) {
-        return Lwm2mCoapRequest.of(
-                LWM2M.Path.fromString(object.getPath()),
+        return new Lwm2mCoapRequest(
+                object.getPath(),
                 LWM2M.Operation.M_READ,
                 generateToken(),
                 LWM2M.ContentType.TLV
@@ -71,8 +84,8 @@ public class CoapRequestBuilder implements RequestBuilder<Lwm2mCoapRequest> {
 
     @Override
     public Lwm2mCoapRequest buildReadRequest(ObjectInstanceProxy instance) {
-        return Lwm2mCoapRequest.of(
-                LWM2M.Path.fromString(instance.getPath()),
+        return new Lwm2mCoapRequest(
+                instance.getPath(),
                 LWM2M.Operation.M_READ,
                 generateToken(),
                 LWM2M.ContentType.TLV
@@ -81,9 +94,9 @@ public class CoapRequestBuilder implements RequestBuilder<Lwm2mCoapRequest> {
 
     @Override
     public Lwm2mCoapRequest buildReadRequest(ObjectResourceProxy<?> resource) {
-        return Lwm2mCoapRequest.of(
-                LWM2M.Path.fromString(resource.getPath()),
-                LWM2M.Operation.M_WRITE_ATTRIBUTE,
+        return new Lwm2mCoapRequest(
+                resource.getPath(),
+                LWM2M.Operation.M_READ,
                 generateToken(),
                 getResourceContentType(resource)
         );
@@ -91,8 +104,8 @@ public class CoapRequestBuilder implements RequestBuilder<Lwm2mCoapRequest> {
 
     @Override
     public Lwm2mCoapRequest buildWriteAttributesRequest(ObjectNodeProxy<?> node) {
-        return Lwm2mCoapRequest.of(
-                LWM2M.Path.fromString(node.getPath()),
+        return new Lwm2mCoapRequest(
+                node.getPath(),
                 LWM2M.Operation.M_WRITE_ATTRIBUTE,
                 generateToken(),
                 LWM2M.ContentType.LINK_FORMAT
@@ -101,26 +114,24 @@ public class CoapRequestBuilder implements RequestBuilder<Lwm2mCoapRequest> {
 
     @Override
     public Lwm2mCoapRequest buildWriteRequest(ObjectInstanceProxy instance) {
-        return Lwm2mCoapRequest.of(
-                LWM2M.Path.fromString(instance.getPath()),
+        return new Lwm2mCoapRequest(
+                instance.getPath(),
                 LWM2M.Operation.M_WRITE,
                 generateToken(),
-                LWM2M.ContentType.TLV
-        ); // TODO
+                LWM2M.ContentType.TLV,
+                WriteParser.serialize(instance)
+        );
     }
 
-
-    private LWM2M.ContentType getResourceContentType(ObjectResourceProxy resource) {
-        if (OpaqueResourceValue.class.equals(resource.getValueType())) {
-            return LWM2M.ContentType.OPAQUE;
-        }
-        if (resource instanceof ObjectMultipleResourceProxy) {
-            return LWM2M.ContentType.TLV;
-        }
-        return LWM2M.ContentType.PLAIN_TEXT;
+    @Override
+    public Lwm2mCoapRequest buildWriteRequest(ObjectResourceProxy resource) {
+        return new Lwm2mCoapRequest(
+                resource.getPath(),
+                LWM2M.Operation.M_WRITE,
+                generateToken(),
+                getResourceFormat(resource),
+                WriteParser.serialize(resource)
+        );
     }
 
-    public String generateToken() {
-        return null; // TODO
-    }
 }

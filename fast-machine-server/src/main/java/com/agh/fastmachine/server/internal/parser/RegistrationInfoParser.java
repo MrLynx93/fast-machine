@@ -26,6 +26,20 @@ public class RegistrationInfoParser {
         return registrationInfo;
     }
 
+    private void parseObjectsAndInstances(Iterator<String> objectsAndInstances) {
+        registrationInfo.objects = new ArrayList<>();
+        while (objectsAndInstances.hasNext()) {
+            String objectString = objectsAndInstances.next();
+            Matcher matcher = PATTERN.matcher(objectString);
+            if (matcher.find()) {
+                String url = matcher.group("url");
+                Integer objectId = Integer.valueOf(matcher.group("object"));
+                Integer instanceId = Integer.valueOf(matcher.group("instance"));
+                registrationInfo.objects.add(new RegistrationObjectInfo(url, objectId, instanceId));
+            }
+        }
+    }
+
     private void parseRequest(String payload) {
         List<String> elems = Arrays.asList(payload.split(","));
         Iterator<String> iterator = elems.iterator();
@@ -45,20 +59,6 @@ public class RegistrationInfoParser {
             iterator.next();
         }
         parseObjectsAndInstances(iterator);
-    }
-
-    private void parseObjectsAndInstances(Iterator<String> objectsAndInstances) {
-        registrationInfo.objects = new ArrayList<>();
-        while (objectsAndInstances.hasNext()) {
-            String objectString = objectsAndInstances.next();
-            Matcher matcher = PATTERN.matcher(objectString);
-            if (matcher.find()) {
-                String url = matcher.group("url");
-                Integer objectId = Integer.valueOf(matcher.group("object"));
-                Integer instanceId = Integer.valueOf(matcher.group("instance"));
-                registrationInfo.objects.add(new RegistrationObjectInfo(url, objectId, instanceId));
-            }
-        }
     }
 
     private void parseParams(List<String> params) {

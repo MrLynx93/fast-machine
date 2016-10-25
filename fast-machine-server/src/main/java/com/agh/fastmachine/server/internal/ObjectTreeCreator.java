@@ -77,9 +77,10 @@ public class ObjectTreeCreator {
         object.internal().setTransportLayer(clientProxy.getTransport());
         object.internal().setClientProxy(clientProxy);
         object.internal().setSupported(true);
-        if (url != null && !url.isEmpty()) {
-            object.internal().setPath(url);
-        }
+//        TODO
+//        if (url != null && !url.isEmpty()) {
+//            object.internal().setPath(url);
+//        }
     }
 
 

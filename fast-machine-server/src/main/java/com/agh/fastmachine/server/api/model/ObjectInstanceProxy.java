@@ -11,6 +11,7 @@ import com.agh.fastmachine.server.internal.parser.ServerObjectFactory;
 import com.agh.fastmachine.core.internal.visitor.NodeVisitor;
 import com.agh.fastmachine.server.api.exception.ObjectDeletedException;
 import com.agh.fastmachine.server.api.listener.ObservationListener;
+import com.agh.fastmachine.server.internal.transport.LWM2M;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -54,11 +55,16 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
         this.internal = new Internal();
     }
 
+    @Override
+    public LWM2M.Path getPath() {
+        return LWM2M.Path.of(getObject().getId(), id);
+    }
+
     public void read() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.readOperations(clientProxy).read(this);
+        transport.read(this);
     }
 
     public void write() {
@@ -72,7 +78,7 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
             ObjectInstanceProxy instance = (ObjectInstanceProxy) factory.createObjectInstance(this.getId(), modifiedResources);
             instance.internal().setObject(this.object);
 
-            transport.writeOperations(clientProxy).write(instance);
+            transport.write(this);
 
             for (ObjectResourceModel<?> resource : modifiedResources.values()) {
                 ((ObjectResourceProxy<?>) resource).internal().setChanged(false);
@@ -84,21 +90,21 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.discoverOperations(clientProxy).discover(this);
+        transport.discover(this);
     }
 
     public void writeAttributes() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.writeAttributeOperations(clientProxy).writeAttributes(this);
+        transport.writeAttributes(this);
     }
 
     public void delete() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.deleteOperations(clientProxy).delete(this);
+        transport.delete(this);
         object.getObjectInstances().remove(this.getId());
 //        object.getObjectInternalInstances().remove(this.getId());
 
@@ -112,14 +118,14 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.observeOperations(clientProxy).observe(this, (ObservationListener<ObjectInstanceProxy>) listener);
+        transport.observe(this, listener);
     }
 
     public void cancelObservation() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.observeOperations(clientProxy).cancelObservation(this);
+        transport.cancelObserve(this);
     }
 
     public boolean isChanged() {

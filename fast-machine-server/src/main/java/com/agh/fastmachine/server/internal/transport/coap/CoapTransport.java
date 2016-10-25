@@ -1,10 +1,12 @@
 package com.agh.fastmachine.server.internal.transport.coap;
 
-import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
-import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.parser.RegistrationInfoParser;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
-import com.agh.fastmachine.server.internal.transport.*;
+import com.agh.fastmachine.server.internal.transport.Lwm2mResponse;
+import com.agh.fastmachine.server.internal.transport.Transport;
+import com.agh.fastmachine.server.internal.transport.coap.message.CoapRequestBuilder;
+import com.agh.fastmachine.server.internal.transport.coap.message.Lwm2mCoapRequest;
+import com.agh.fastmachine.server.internal.transport.coap.message.Lwm2mCoapResponse;
 import com.agh.fastmachine.server.internal.transport.coap.resource.CoapBootstrapResource;
 import com.agh.fastmachine.server.internal.transport.coap.resource.CoapRegistrationResource;
 import org.eclipse.californium.core.CoapClient;
@@ -22,9 +24,12 @@ import java.util.List;
 public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest> {
     private static final Logger LOG = LoggerFactory.getLogger(CoapTransport.class);
     private RegistrationInfoParser registrationInfoParser = new RegistrationInfoParser();
-    private CoapOperations operations = new CoapOperations();
     private CoapServer coapServer;
     private Endpoint endpoint;
+
+    public CoapTransport() {
+        requestBuilder = new CoapRequestBuilder();
+    }
 
     @Override
     public void start(CoapConfiguration configuration) {
@@ -56,30 +61,13 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
         @Override
         public void onLoad(CoapResponse coapResponse) {
             Lwm2mResponse response = Lwm2mCoapResponse.fromCoapResponse(coapResponse);
-            String token = response.getToken();
-            PendingRequest pendingRequest = pendingRequests.get(token);
-            Lwm2mRequest request = pendingRequest.getRequest();
-
-            if (isNotify(request, response)) {
-                observeHandlers.get(token).onNotify(response);
-            }
-            if (isCancelObserve(request, response)) {
-                observeHandlers.remove(token);
-            }
-            pendingRequest.complete(response);
+            handleResponse(response);
         }
 
         @Override
         public void onError() {
         }
 
-        private boolean isNotify(Lwm2mRequest request, Lwm2mResponse response) {
-            return (request.getOperation() == LWM2M.Operation.I_NOTIFY && response.isSuccess());
-        }
-
-        private boolean isCancelObserve(Lwm2mRequest request, Lwm2mResponse response) {
-            return (request.getOperation() == LWM2M.Operation.I_CANCEL_OBSERVATION && response.isSuccess());
-        }
     };
 
     public RegistrationInfo parseRegistrationInfo(Request request) {

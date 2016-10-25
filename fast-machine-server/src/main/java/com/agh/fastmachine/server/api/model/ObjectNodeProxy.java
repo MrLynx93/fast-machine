@@ -3,6 +3,7 @@ package com.agh.fastmachine.server.api.model;
 import com.agh.fastmachine.core.api.model.Attributes;
 import com.agh.fastmachine.core.internal.model.ObjectNodeModel;
 import com.agh.fastmachine.server.api.ClientProxy;
+import com.agh.fastmachine.server.internal.transport.LWM2M;
 import com.agh.fastmachine.server.internal.transport.Transport;
 
 public abstract class ObjectNodeProxy<I extends ObjectNodeProxy.Internal> implements ObjectNodeModel {
@@ -28,7 +29,7 @@ public abstract class ObjectNodeProxy<I extends ObjectNodeProxy.Internal> implem
 
     public abstract void writeAttributes();
 
-    public abstract String getPath();
+    public abstract LWM2M.Path getPath();
 
     public Attributes getAttributes() {
         return attributes;
@@ -46,6 +47,14 @@ public abstract class ObjectNodeProxy<I extends ObjectNodeProxy.Internal> implem
 
     public I internal() {
         return internal;
+    }
+
+    public String getObserveToken() {
+        return observeToken;
+    }
+
+    public void setObserveToken(String observeToken) {
+        this.observeToken = observeToken;
     }
 
     public class Internal {

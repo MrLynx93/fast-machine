@@ -4,10 +4,10 @@ import com.agh.fastmachine.server.internal.transport.LWM2M;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 
-final class COAP {
+public final class COAP {
     private COAP() {}
 
-    static CoAP.Code getCoapMethod(LWM2M.Operation operation, LWM2M.Path path) {
+    public static CoAP.Code getCoapMethod(LWM2M.Operation operation, LWM2M.Path path) {
         switch (operation) {
             case BS_REQ:
             case BS_FINISH:
@@ -36,7 +36,7 @@ final class COAP {
         }
     }
 
-    static int getContentTypeCode(LWM2M.ContentType contentType) {
+    public static int getContentTypeCode(LWM2M.ContentType contentType) {
         switch (contentType) {
             case NO_FORMAT:   return MediaTypeRegistry.UNDEFINED;
             case PLAIN_TEXT:  return MediaTypeRegistry.TEXT_PLAIN;
@@ -47,7 +47,7 @@ final class COAP {
         }
     }
 
-    static LWM2M.ContentType getContentType(int contentTypeCode) {
+    public static LWM2M.ContentType getContentType(int contentTypeCode) {
         switch (contentTypeCode) {
             case MediaTypeRegistry.UNDEFINED:                return LWM2M.ContentType.NO_FORMAT;
             case MediaTypeRegistry.TEXT_PLAIN:               return LWM2M.ContentType.PLAIN_TEXT;
@@ -58,7 +58,7 @@ final class COAP {
         }
     }
 
-    static LWM2M.ResponseCode getResponseCode(CoAP.ResponseCode coapResponseCode) {
+    public static LWM2M.ResponseCode getResponseCode(CoAP.ResponseCode coapResponseCode) {
         switch (coapResponseCode) {
             case CREATED:                    return LWM2M.ResponseCode.CREATED;
             case DELETED:                    return LWM2M.ResponseCode.DELETED;

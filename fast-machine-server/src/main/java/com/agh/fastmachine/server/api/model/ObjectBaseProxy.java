@@ -3,6 +3,7 @@ package com.agh.fastmachine.server.api.model;
 import com.agh.fastmachine.core.internal.model.ObjectBaseModel;
 import com.agh.fastmachine.core.internal.visitor.NodeVisitor;
 import com.agh.fastmachine.server.api.listener.ObservationListener;
+import com.agh.fastmachine.server.internal.transport.LWM2M;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,23 +34,28 @@ public class ObjectBaseProxy<T extends ObjectInstanceProxy> extends ObjectNodePr
     }
 
     public void read() {
-        transport.readOperations(clientProxy).read(this);
+        transport.read(this);
     }
 
     public void discover() {
-        transport.discoverOperations(clientProxy).discover(this);
+        transport.discover(this);
     }
 
     public void writeAttributes() {
-        transport.writeAttributeOperations(clientProxy).writeAttributes(this);
+        transport.writeAttributes(this);
+    }
+
+    @Override
+    public LWM2M.Path getPath() {
+        return LWM2M.Path.of(id);
     }
 
     public void observe(ObservationListener<ObjectBaseProxy<T>> listener) {
-        transport.observeOperations(clientProxy).observe(this, listener);
+        transport.observe(this, listener);
     }
 
     public void cancelObservation() {
-        transport.observeOperations(clientProxy).cancelObservation(this);
+        transport.cancelObserve(this);
     }
 
     public boolean isChanged() {
@@ -87,13 +93,6 @@ public class ObjectBaseProxy<T extends ObjectInstanceProxy> extends ObjectNodePr
             }
         }
 
-        public void setPath(String path) {
-            ObjectBaseProxy.this.path = path;
-        }
-
-        public String getPath() {
-            return path;
-        }
     }
 
     public void addInstance(ObjectInstanceProxy instance) {

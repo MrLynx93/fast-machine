@@ -18,6 +18,7 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
     private String endpointClientName;
     private String registrationEndpoint;
     private String clientId;
+    private String serverId;
     private String clientUrl;
     private final Server server;
     private RegistrationInfo registrationInfo;
@@ -31,17 +32,24 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
 
     @Override
     public <T extends ObjectInstanceProxy> void create(T patternInstance) {
-        transport.createOperations(this).create(patternInstance);
+        patternInstance.internal().setClientProxy(this);
+        transport.create(patternInstance);
     }
 
     @Override
     public <T extends ObjectInstanceProxy> void create(T patternInstance, int id) {
-        transport.createOperations(this).create(patternInstance, id);
+        patternInstance.internal().setClientProxy(this);
+        patternInstance.internal().setId(id);
+        transport.create(patternInstance, id);
     }
 
     @Override
     public String getClientId() {
         return clientId;
+    }
+
+    public String getServerId() {
+        return serverId;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.agh.fastmachine.server.internal.transport;
 
+import com.agh.fastmachine.server.internal.transport.LWM2M;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

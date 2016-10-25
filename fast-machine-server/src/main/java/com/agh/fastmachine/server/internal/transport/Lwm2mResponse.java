@@ -13,7 +13,7 @@ public abstract class Lwm2mResponse {
     protected final LWM2M.ResponseCode responseCode;
     protected final byte[] payload;
 
-    public abstract int getCreatedInstanceId();
+    public abstract Integer getCreatedInstanceId();
     public abstract String getToken();
 
     public boolean isSuccess() {

@@ -1,51 +1,45 @@
 package com.agh.fastmachine.server.internal.transport.mqtt;
 
-import com.agh.fastmachine.server.api.listener.ObservationListener;
-import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
-import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
-import com.agh.fastmachine.server.api.model.ObjectResourceProxy;
-import com.agh.fastmachine.server.internal.transport.PendingRequest;
-import com.agh.fastmachine.server.internal.transport.Transport;
-import com.agh.fastmachine.server.internal.transport.Lwm2mRequest;
+import com.agh.fastmachine.server.internal.client.ClientManager;
+import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
+import com.agh.fastmachine.server.internal.service.BootstrapService;
+import com.agh.fastmachine.server.internal.service.RegistrationService;
+import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
+import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationObjectInfo;
+import com.agh.fastmachine.server.internal.transport.LWM2M;
 import com.agh.fastmachine.server.internal.transport.Lwm2mResponse;
-import com.agh.fastmachine.server.internal.transport.mqtt.operations.*;
-import com.agh.fastmachine.server.internal.transport.operations.Operations;
+import com.agh.fastmachine.server.internal.transport.Transport;
+import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttRegisterRequest;
+import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttRequest;
+import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttResponse;
 import org.eclipse.paho.client.mqttv3.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static com.agh.fastmachine.server.internal.transport.operations.Operations.Type.*;
-
-public class MqttTransport extends Transport<MqttConfiguration> {
-    private final Map<Operations.Type, Operations> operations;
-    private Map<String, PendingRequest> pendingRequests = new ConcurrentHashMap<>();
-    private Map<String, ObservationListener> observeSessions = new ConcurrentHashMap<>();
+public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest> {
+    private Map<String, ClientProxyImpl> registeredClients = new HashMap<>();
     private MqttClient mqttClient;
-
-    public MqttTransport() {
-        operations = new HashMap<>();
-        operations.put(CREATE, new MqttCreateOperations(this));
-        operations.put(DELETE, new MqttDeleteOperations(this));
-        operations.put(DISCOVER, new MqttDiscoverOperations(this));
-        operations.put(EXECUTE, new MqttExecuteOperations(this));
-        operations.put(OBSERVE, new MqttObserveOperations(this));
-        operations.put(READ, new MqttReadOperations(this));
-        operations.put(WRITE, new MqttWriteOperations(this));
-        operations.put(WRITE_ATTRIBUTES, new MqttWriteAttributeOperations(this));
-    }
+    private RegistrationService registrationService;
+    private ClientManager clientManager;
+    private BootstrapService bootstrapService;
 
     @Override
     public void start(MqttConfiguration configuration) {
         try {
             mqttClient = new MqttClient(configuration.getBrokerAddress(), configuration.getServerId());
+            registrationService = configuration.getServer().internal().getRegistrationService();
+            bootstrapService = configuration.getServer().internal().getBootstrapService();
+            clientManager = configuration.getServer().internal().getClientManager();
+
             MqttConnectOptions options = new MqttConnectOptions();
             options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
             options.setCleanSession(true);
 
             mqttClient.connect(options);
             mqttClient.setCallback(mqttCallback);
+            mqttClient.subscribe("lynx/#");
 
         } catch (MqttException e) {
             e.printStackTrace();
@@ -62,78 +56,54 @@ public class MqttTransport extends Transport<MqttConfiguration> {
     }
 
     @Override
-    public Operations getOperations(Operations.Type type) {
-        return operations.get(type);
-    }
-
-    public PendingRequest sendRequest(Lwm2mRequest request) {
-        return sendRequest(request, null);
-    }
-
-    public PendingRequest sendRequest(Lwm2mRequest request, ObservationListener<?> listener) {
+    protected void doSendRequest(Lwm2mMqttRequest request) {
         try {
-            PendingRequest pendingRequest = new PendingRequest(request);
-            pendingRequests.put(pendingRequest.getToken(), pendingRequest);
-            if (listener != null) {
-                observeSessions.put(pendingRequest.getToken(), listener);
-            }
-            mqttClient.publish(request.getTopic().toString(), request.getPayload(), 0, false);
-            return pendingRequest;
+            mqttClient.publish(request.getTopic().toString(), request.toMqttMessage());
         } catch (MqttException e) {
             e.printStackTrace();
         }
-        return null;
     }
 
-    public MqttClient getMqttClient() {
-        return mqttClient;
+    private void doSendResponse(Lwm2mMqttResponse response) {
+        try {
+            mqttClient.publish(response.getTopic().toString(), response.toMqttMessage());
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
     }
-
-    public String getRequestTopic(MessageType type, ObjectBaseProxy object) {
-        return String.format("%s/req/%s/%s/%s/%d",
-                type.getType(),
-                generateToken(),
-                object.getClientProxy().getClientId(),
-                configuration.getServerId(),
-                object.getId());
-    }
-
-    public String getRequestTopic(MessageType type, ObjectInstanceProxy instance) {
-        return String.format("%s/req/%s/%s/%s/%d/%d",
-                type.getType(),
-                generateToken(),
-                configuration.getServerId(),
-                instance.getClientProxy().getClientId(),
-                instance.getObject().getId(),
-                instance.getId());
-    }
-
-    public String getRequestTopic(MessageType type, ObjectResourceProxy resource) {
-        return String.format("%s/req/%s/%s/%s/%d/%d/%d",
-                type.getType(),
-                generateToken(),
-                resource.getClientProxy().getClientId(),
-                configuration.getServerId(),
-                resource.getInstance().getObject().getId(),
-                resource.getInstance().getId(),
-                resource.getId());
-    }
-
 
     private MqttCallback mqttCallback = new MqttCallback() {
 
         @Override
         public void messageArrived(String topicString, MqttMessage message) throws Exception {
-            Lwm2mResponse response = Lwm2mResponse.parse(topicString, message.getPayload());
-            PendingRequest pendingRequest = pendingRequests.get(response.getToken());
-            pendingRequest.complete(response);
+            MQTT.Topic topic = MQTT.Topic.fromString(topicString);
 
-            if ())
-
-
-            if (!response.isNotify()) {
-                pendingRequests.remove(pendingRequest.getToken());
+            if (topic.getType().equals("req")) {
+                switch (topic.getOperation()) {
+                    case BS_REQ:
+                        // TODO handleBootstrap(Lwm2mMqttRequest.fromMqtt(message));
+                        break;
+                    case R_REGISTER:
+                        handleRegister(Lwm2mMqttRegisterRequest.fromMqtt(message, topic));
+                        break;
+                    case R_UPDATE:
+                        handleUpdate(Lwm2mMqttRegisterRequest.fromMqtt(message, topic));
+                        break;
+                    case R_DEREGISTER:
+                        handleDeregister(Lwm2mMqttRegisterRequest.fromMqtt(message, topic));
+                        break;
+                }
             }
+
+            if (topic.getType().equals("res")) {
+                Lwm2mResponse response = Lwm2mMqttResponse.fromMqtt(message, topic);
+                handleResponse(response);
+            }
+        }
+
+        @Override
+        public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
+
         }
 
         @Override
@@ -141,13 +111,120 @@ public class MqttTransport extends Transport<MqttConfiguration> {
             throw new RuntimeException(throwable);
         }
 
-        @Override
-        public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
-
-        }
     };
 
-    private String generateToken() {
-        return ""; // tODO
+    private void handleRegister(Lwm2mMqttRegisterRequest request) {
+        RegistrationInfo registrationInfo = parseRegistrationInfo(request);
+        String endpointClientName = registrationInfo.endpointClientName;
+
+        if (!registrationService.isClientRegistered(endpointClientName)) {
+            ClientProxyImpl clientProxy = clientManager.createClient(endpointClientName);
+            registrationService.registerClientProxy(clientProxy, registrationInfo);
+            registeredClients.put(request.getTopic().getClientId(), clientProxy);
+
+            Lwm2mMqttResponse response = createRegisterResponse(request);
+            doSendResponse(response);
+        }
     }
+
+    private void handleUpdate(Lwm2mMqttRegisterRequest request) {
+        ClientProxyImpl clientProxy = registeredClients.get(request.getTopic().getClientId());
+        RegistrationInfo updatedInfo = parseRegistrationInfo(request);
+        registrationService.handleUpdateForClientProxy(clientProxy, updatedInfo);
+
+        Lwm2mMqttResponse response = createUpdateResponse(request);
+        doSendResponse(response);
+        registrationService.updateFinished(clientProxy);
+    }
+
+    private void handleDeregister(Lwm2mMqttRegisterRequest request) {
+        ClientProxyImpl clientProxy = registeredClients.get(request.getTopic().getClientId());
+        registeredClients.remove(request.getTopic().getClientId());
+        clientProxy.setRegistrationInfo(null);
+
+        Lwm2mMqttResponse response = createDeregisterResponse(request);
+        doSendResponse(response);
+        registrationService.deregisterFinished(clientProxy);
+    }
+
+    public RegistrationInfo parseRegistrationInfo(Lwm2mMqttRegisterRequest request) {
+        RegisterHeader header = request.getHeader();
+        RegistrationInfo info = new RegistrationInfo();
+        info.endpointClientName = header.getEndpointClientName();
+        info.lifetime = header.getLifetime();
+        info.lwm2mVersion = header.getVersion();
+        info.bindingMode = header.getBindingMode();
+        info.smsNumber = header.getSmsNumber();
+        info.objects = parseObjects(request.getPayloadText());
+        return info;
+    }
+
+    private Lwm2mMqttResponse createUpdateResponse(Lwm2mMqttRegisterRequest request) {
+        MQTT.Topic topic = new MQTT.Topic(
+                LWM2M.Operation.R_UPDATE,
+                "res",
+                request.getToken(),
+                request.getTopic().getClientId(),
+                request.getTopic().getServerId(),
+                LWM2M.Path.empty()
+        );
+
+        return new Lwm2mMqttResponse(
+                topic,
+                LWM2M.ContentType.NO_FORMAT,
+                LWM2M.ResponseCode.CHANGED
+        );
+    }
+
+    private Lwm2mMqttResponse createRegisterResponse(Lwm2mMqttRegisterRequest request) {
+        MQTT.Topic topic = new MQTT.Topic(
+                LWM2M.Operation.R_REGISTER,
+                "res",
+                request.getToken(),
+                request.getTopic().getClientId(),
+                request.getTopic().getServerId(),
+                LWM2M.Path.empty()
+        );
+
+        return new Lwm2mMqttResponse(
+                topic,
+                LWM2M.ContentType.NO_FORMAT,
+                LWM2M.ResponseCode.CREATED);
+    }
+
+    private Lwm2mMqttResponse createDeregisterResponse(Lwm2mMqttRegisterRequest request) {
+        MQTT.Topic topic = new MQTT.Topic(
+                LWM2M.Operation.R_DEREGISTER,
+                "res",
+                request.getToken(),
+                request.getTopic().getClientId(),
+                request.getTopic().getServerId(),
+                LWM2M.Path.empty()
+        );
+
+        return new Lwm2mMqttResponse(
+                topic,
+                LWM2M.ContentType.NO_FORMAT,
+                LWM2M.ResponseCode.DELETED);
+    }
+
+
+
+    private static final Pattern PATTERN = Pattern.compile("<(?<url>.*?)/(?<object>\\d+)(?:/(?<instance>\\d+)/?)?>");
+
+    private List<RegistrationObjectInfo> parseObjects(String payload) {
+        List<RegistrationObjectInfo> objects = new ArrayList<>();
+        List<String> elements = Arrays.asList(payload.split(","));
+        for (String element : elements) {
+            Matcher matcher = PATTERN.matcher(element);
+            if (matcher.find()) {
+                String url = matcher.group("url");
+                Integer objectId = Integer.valueOf(matcher.group("object"));
+                Integer instanceId = Integer.valueOf(matcher.group("instance"));
+                objects.add(new RegistrationObjectInfo(url, objectId, instanceId));
+            }
+        }
+        return objects;
+    }
+
 }

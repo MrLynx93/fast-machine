@@ -5,6 +5,7 @@ import com.agh.fastmachine.core.api.model.resourcevalue.ResourceValue;
 import com.agh.fastmachine.core.internal.visitor.NodeVisitor;
 import com.agh.fastmachine.server.api.exception.ObjectDeletedException;
 import com.agh.fastmachine.server.api.listener.ObservationListener;
+import com.agh.fastmachine.server.internal.transport.LWM2M;
 
 import java.util.Map;
 
@@ -37,6 +38,11 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
         return valueClass;
     }
 
+    @Override
+    public LWM2M.Path getPath() {
+        return LWM2M.Path.of(getInstance().getObject().getId(), getInstance().getId(), id);
+    }
+
     public void setValue(ResourceValue<?> value) {
         if (isDeleted) {
             throw new ObjectDeletedException();
@@ -49,7 +55,7 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.readOperations(clientProxy).read(this);
+        transport.read(this);
     }
 
     public void write() {
@@ -57,7 +63,7 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
             throw new ObjectDeletedException();
         }
         if (isChanged) {
-            transport.writeOperations(clientProxy).write(this);
+            transport.write(this);
             isChanged = false;
         }
     }
@@ -66,32 +72,32 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.discoverOperations(clientProxy).discover(this);
+        transport.discover(this);
     }
 
     public void writeAttributes() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.writeAttributeOperations(clientProxy).writeAttributes(this);
+        transport.writeAttributes(this);
     }
 
     public void execute(byte[] arguments) {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.executeOperations(clientProxy).execute(this, arguments);
+        transport.execute(this, arguments);
     }
 
     public void observe(ObservationListener<ObjectResourceProxy<T>> listener) {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.observeOperations(clientProxy).observe(this, listener);
+        transport.observe(this, listener);
     }
 
     public void cancelObservation() {
-        transport.observeOperations(clientProxy).cancelObservation(this);
+        transport.cancelObserve(this);
     }
 
     public boolean isChanged() {

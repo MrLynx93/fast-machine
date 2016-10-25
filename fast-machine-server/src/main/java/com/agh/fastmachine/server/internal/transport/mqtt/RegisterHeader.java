@@ -1,4 +1,4 @@
-package com.agh.fastmachine.server.internal.transport.mqtt.message;
+package com.agh.fastmachine.server.internal.transport.mqtt;
 
 import com.agh.fastmachine.server.internal.service.registrationinfo.BindingMode;
 import lombok.Data;

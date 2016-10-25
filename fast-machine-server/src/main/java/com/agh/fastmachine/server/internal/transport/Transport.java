@@ -37,6 +37,21 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
         return pendingRequest;
     }
 
+    protected void handleResponse(Lwm2mResponse response) {
+        String token = response.getToken();
+        PendingRequest pendingRequest = pendingRequests.get(token);
+        Lwm2mRequest request = pendingRequest.getRequest();
+
+        if (isNotify(request, response)) {
+            observeHandlers.get(token).onNotify(response);
+        }
+        if (isCancelObserve(request, response)) {
+            observeHandlers.remove(token);
+        }
+        pendingRequest.complete(response);
+    }
+
+
     public void startObserve(String token, ObserveHandler observeHandler) {
         observeHandlers.put(token, observeHandler);
     }
@@ -148,7 +163,20 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
         Lwm2mResponse response = pendingRequest.waitForCompletion();
         if (response.isSuccess()) {
             startObserve(request.getToken(), new ObserveHandler(node, listener));
+            node.setObserveToken(request.getToken());
             LOG.debug("Started observing: {}", node.getPath());
+        }
+    }
+
+    public void cancelObserve(ObjectNodeProxy<?> node) {
+        REQ request = requestBuilder.buildCancelObserveRequest(node);
+        PendingRequest pendingRequest = sendRequest(request);
+
+        Lwm2mResponse response = pendingRequest.waitForCompletion();
+        if (response.isSuccess()) {
+            stopObserve(node.getObserveToken());
+            node.setObserveToken(null);
+            LOG.debug("Stopped observing: {}", node.getPath());
         }
     }
 
@@ -236,6 +264,14 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
     private void connectToRemote(ObjectInstanceProxy instance) {
         ClientProxyImpl client = (ClientProxyImpl) instance.getClientProxy();
         client.getServer().internal().getObjectTreeCreator().connectToRemoteClient(instance, client); // TODO It doesn't look good
+    }
+
+    private boolean isNotify(Lwm2mRequest request, Lwm2mResponse response) {
+        return (request.getOperation() == LWM2M.Operation.I_NOTIFY && response.isSuccess());
+    }
+
+    private boolean isCancelObserve(Lwm2mRequest request, Lwm2mResponse response) {
+        return (request.getOperation() == LWM2M.Operation.I_CANCEL_OBSERVATION && response.isSuccess());
     }
 
 }

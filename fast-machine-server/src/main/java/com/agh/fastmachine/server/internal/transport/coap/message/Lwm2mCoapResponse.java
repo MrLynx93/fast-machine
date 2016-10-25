@@ -1,12 +1,14 @@
-package com.agh.fastmachine.server.internal.transport.coap;
+package com.agh.fastmachine.server.internal.transport.coap.message;
 
 import com.agh.fastmachine.server.internal.transport.LWM2M;
 import com.agh.fastmachine.server.internal.transport.Lwm2mResponse;
+import com.agh.fastmachine.server.internal.transport.coap.COAP;
+import lombok.Builder;
 import lombok.Data;
 import org.eclipse.californium.core.CoapResponse;
 
 @Data
-class Lwm2mCoapResponse extends Lwm2mResponse {
+public class Lwm2mCoapResponse extends Lwm2mResponse {
     private final Integer createdInstanceId;
     private final String token;
 
