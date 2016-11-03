@@ -78,9 +78,9 @@ public final class MQTT {
             case BS_WRITE:             return "bw";
             case BS_DELETE:            return "bd";
             case BS_FINISH:            return "bf";
-            case R_REGISTER:           return "br";
-            case R_UPDATE:             return "bu";
-            case R_DEREGISTER:         return "bd";
+            case R_REGISTER:           return "rr";
+            case R_UPDATE:             return "ru";
+            case R_DEREGISTER:         return "rd";
             case M_READ:               return "mr";
             case M_WRITE:              return "mw";
             case M_EXECUTE:            return "me";

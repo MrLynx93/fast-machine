@@ -34,18 +34,20 @@ public class ObjectTreeCreator {
                 objects.put(objectId, object);
             }
 
-            try {
-                Class<? extends ObjectInstanceProxy> instanceClass = instanceClasses.get(objectId);
-                ObjectInstanceProxy instance = instanceClass.newInstance();
-                instance.internal().setId(instanceId);
-                initializeInstance(instance, clientProxy, url);
-                for (ObjectResourceProxy<?> resource : instance.getResources().values()) {
-                    initializeResource(resource, resource.getValueType(), clientProxy);
+            if (instanceId != null) {
+                try {
+                    Class<? extends ObjectInstanceProxy> instanceClass = instanceClasses.get(objectId);
+                    ObjectInstanceProxy instance = instanceClass.newInstance();
+                    instance.internal().setId(instanceId);
+                    initializeInstance(instance, clientProxy, url);
+                    for (ObjectResourceProxy<?> resource : instance.getResources().values()) {
+                        initializeResource(resource, resource.getValueType(), clientProxy);
+                    }
+                    instance.internal().setObject(object);
+                    object.addInstance(instance);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
-                instance.internal().setObject(object);
-                object.addInstance(instance);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
             }
         }
         return new ObjectTree(objects, instanceClasses);

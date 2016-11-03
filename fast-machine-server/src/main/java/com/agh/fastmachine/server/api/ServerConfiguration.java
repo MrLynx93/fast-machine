@@ -12,6 +12,7 @@ import java.util.Map;
 
 public class ServerConfiguration {
     public static final int TRASPORT_COAP = 0;
+    public static final int TRASPORT_MQTT = 1;
     private Map<Integer, Class<? extends ObjectInstanceProxy>> instanceClasses = new HashMap<>();
     private Integer port;
     private int transport = TRASPORT_COAP;
@@ -40,5 +41,9 @@ public class ServerConfiguration {
 
     public int getTransport() {
         return transport;
+    }
+
+    public void setTransport (int transport) {
+        this.transport = transport;
     }
 }

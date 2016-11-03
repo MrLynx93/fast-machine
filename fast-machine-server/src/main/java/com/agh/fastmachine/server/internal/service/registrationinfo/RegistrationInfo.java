@@ -4,7 +4,7 @@ import java.util.List;
 
 public final class RegistrationInfo {
     public String endpointClientName;
-    public int lifetime;
+    public Integer lifetime;
     public String lwm2mVersion;
     public String smsNumber;
     public BindingMode bindingMode;

@@ -29,7 +29,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
     @Override
     public void start(MqttConfiguration configuration) {
         try {
-            mqttClient = new MqttClient(configuration.getBrokerAddress(), configuration.getServerId());
+            mqttClient = new MqttClient(configuration.getBrokerAddress(), "server");
             registrationService = configuration.getServer().internal().getRegistrationService();
             bootstrapService = configuration.getServer().internal().getBootstrapService();
             clientManager = configuration.getServer().internal().getClientManager();
@@ -40,7 +40,28 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
             mqttClient.connect(options);
             mqttClient.setCallback(mqttCallback);
-            mqttClient.subscribe("lynx/#");
+            mqttClient.subscribe("lynx/br/req/+/+/" + configuration.getServerId());
+            mqttClient.subscribe("lynx/bw/res/+/+/" + configuration.getServerId() + "/#");
+            mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerId());
+            mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerId() + "/#");
+            mqttClient.subscribe("lynx/bf/res/+/+/" + configuration.getServerId());
+
+            mqttClient.subscribe("lynx/rr/req/+/+/" + configuration.getServerId());
+            mqttClient.subscribe("lynx/ru/req/+/+/" + configuration.getServerId());
+            mqttClient.subscribe("lynx/rd/req/+/+/" + configuration.getServerId());
+
+            mqttClient.subscribe("lynx/mr/res/+/+/" + configuration.getServerId() + "/#");
+            mqttClient.subscribe("lynx/mw/res/+/+/" + configuration.getServerId() + "/#");
+            mqttClient.subscribe("lynx/me/res/+/+/" + configuration.getServerId() + "/+/+/+");
+            mqttClient.subscribe("lynx/mc/res/+/+/" + configuration.getServerId() + "/#");
+            mqttClient.subscribe("lynx/md/res/+/+/" + configuration.getServerId() + "/+/+");
+            mqttClient.subscribe("lynx/ma/res/+/+/" + configuration.getServerId() + "/#");
+            mqttClient.subscribe("lynx/mm/res/+/+/" + configuration.getServerId() + "/#"); // TODO in doc md -> mm
+
+            mqttClient.subscribe("lynx/io/res/+/+/" + configuration.getServerId() + "/#");
+            mqttClient.subscribe("lynx/in/req/+/+/" + configuration.getServerId() + "/#");
+            mqttClient.subscribe("lynx/ic/res/+/+/" + configuration.getServerId() + "/#");
+
 
         } catch (MqttException e) {
             e.printStackTrace();
@@ -67,7 +88,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
     private void doSendResponse(Lwm2mMqttResponse response) {
         try {
-            mqttClient.publish(response.getTopic().toString(), response.toMqttMessage());
+            mqttClient.publish("lynx/" + response.getTopic().toString(), response.toMqttMessage());
         } catch (MqttException e) {
             e.printStackTrace();
         }
@@ -82,7 +103,8 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
         @Override
         public void messageArrived(String topicString, MqttMessage message) throws Exception {
-            MQTT.Topic topic = MQTT.Topic.fromString(topicString);
+            MQTT.Topic topic = MQTT.Topic.fromString(topicString.replaceFirst("lynx/", ""));
+            System.out.println(topic);
 
             if (topic.getType().equals("req")) {
                 switch (topic.getOperation()) {
@@ -96,7 +118,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
                         handleUpdate(Lwm2mMqttRegisterRequest.fromMqtt(message, topic));
                         break;
                     case R_DEREGISTER:
-                        handleDeregister(Lwm2mMqttRegisterRequest.fromMqtt(message, topic));
+                        handleDeregister(Lwm2mMqttRequest.fromMqtt(message, topic));
                         break;
                 }
             }
@@ -143,7 +165,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
         registrationService.updateFinished(clientProxy);
     }
 
-    private void handleDeregister(Lwm2mMqttRegisterRequest request) {
+    private void handleDeregister(Lwm2mMqttRequest request) {
         ClientProxyImpl clientProxy = registeredClients.get(request.getTopic().getClientId());
         registeredClients.remove(request.getTopic().getClientId());
         clientProxy.setRegistrationInfo(null);
@@ -198,7 +220,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
                 LWM2M.ResponseCode.CREATED);
     }
 
-    private Lwm2mMqttResponse createDeregisterResponse(Lwm2mMqttRegisterRequest request) {
+    private Lwm2mMqttResponse createDeregisterResponse(Lwm2mMqttRequest request) {
         MQTT.Topic topic = new MQTT.Topic(
                 LWM2M.Operation.R_DEREGISTER,
                 "res",
@@ -219,6 +241,10 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
     private static final Pattern PATTERN = Pattern.compile("<(?<url>.*?)/(?<object>\\d+)(?:/(?<instance>\\d+)/?)?>");
 
     private List<RegistrationObjectInfo> parseObjects(String payload) {
+        if (payload == null || payload.length() == 0) {
+            return new ArrayList<>();
+        }
+
         List<RegistrationObjectInfo> objects = new ArrayList<>();
         List<String> elements = Arrays.asList(payload.split(","));
         for (String element : elements) {
@@ -226,7 +252,10 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
             if (matcher.find()) {
                 String url = matcher.group("url");
                 Integer objectId = Integer.valueOf(matcher.group("object"));
-                Integer instanceId = Integer.valueOf(matcher.group("instance"));
+                Integer instanceId = null;
+                if (matcher.group("instance") != null && !matcher.group("instance").equals("")) {
+                    instanceId = Integer.valueOf(matcher.group("instance"));
+                }
                 objects.add(new RegistrationObjectInfo(url, objectId, instanceId));
             }
         }

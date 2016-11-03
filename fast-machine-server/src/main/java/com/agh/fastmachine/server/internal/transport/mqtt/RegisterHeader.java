@@ -16,6 +16,10 @@ public class RegisterHeader {
         RegisterHeader registerHeader = new RegisterHeader();
         registerHeader.header = header;
 
+        if (header == null || header.length() == 0) {
+            return registerHeader;
+        }
+
         String[] params = header.split("&");
         for (String param : params) {
             String[] elements = param.split("=");

@@ -8,25 +8,26 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.StringTokenizer;
 
 @Data
 public class Lwm2mMqttRegisterRequest extends Lwm2mMqttRequest {
     private RegisterHeader header;
 
     public Lwm2mMqttRegisterRequest(MQTT.Topic topic, LWM2M.ContentType contentType, RegisterHeader header, byte[] payload) {
-        super(topic, contentType, payload, null);
+        super(topic, contentType, payload);
         this.header = header;
     }
 
     public static Lwm2mMqttRegisterRequest fromMqtt(MqttMessage mqttMessage, MQTT.Topic topic) {
         String fullPayload = new String(Arrays.copyOfRange(mqttMessage.getPayload(), 1, mqttMessage.getPayload().length));
-        String[] elems = fullPayload.split("\\?");
+        String[] elems = fullPayload.split("\\?", -1);
 
         return new Lwm2mMqttRegisterRequest(
                 topic,
                 MQTT.parseContentTypeFromCode(mqttMessage.getPayload()[0]),
                 RegisterHeader.fromString(elems[0]),
-                elems[0].getBytes()
+                elems[1].getBytes()
         );
     }
 
