@@ -19,12 +19,12 @@ public class Lwm2mMqttRequest extends Lwm2mRequest {
         this.topic = topic;
     }
 
-    Lwm2mMqttRequest(MQTT.Topic topic, LWM2M.ContentType contentType, byte[] payload) {
+    public Lwm2mMqttRequest(MQTT.Topic topic, LWM2M.ContentType contentType, byte[] payload) {
         super(contentType, false, payload);
         this.topic = topic;
     }
 
-    Lwm2mMqttRequest(MQTT.Topic topic, LWM2M.ContentType contentType) {
+    public Lwm2mMqttRequest(MQTT.Topic topic, LWM2M.ContentType contentType) {
         super(contentType, false, null);
         this.topic = topic;
     }

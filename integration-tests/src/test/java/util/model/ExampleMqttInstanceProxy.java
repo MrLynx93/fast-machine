@@ -67,4 +67,11 @@ public class ExampleMqttInstanceProxy extends ObjectInstanceProxy {
     @Lwm2mResource(id = 9)
     public ObjectMultipleResourceProxy<StringResourceValue> multipleOptionalStringExample;
 
+
+    public ExampleMqttInstanceProxy() {
+    }
+
+    public ExampleMqttInstanceProxy(int id) {
+        super(id);
+    }
 }

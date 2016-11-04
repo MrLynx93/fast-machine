@@ -4,7 +4,6 @@ import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.ServerConfiguration;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
 import util.model.ExampleMqttInstanceProxy;
-import util.model.ExampleObjectInstanceProxy;
 
 public class MqttTest {
     private static String BROKER_ADDRESS = "tcp://localhost:1883";
