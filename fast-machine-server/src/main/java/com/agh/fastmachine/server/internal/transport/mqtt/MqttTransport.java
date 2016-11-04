@@ -167,6 +167,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
     private void handleDeregister(Lwm2mMqttRequest request) {
         ClientProxyImpl clientProxy = registeredClients.get(request.getTopic().getClientId());
+        registrationService.deregisterClientProxy(clientProxy);
         registeredClients.remove(request.getTopic().getClientId());
         clientProxy.setRegistrationInfo(null);
 

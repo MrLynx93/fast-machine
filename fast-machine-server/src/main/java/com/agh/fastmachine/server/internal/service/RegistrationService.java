@@ -32,6 +32,11 @@ public class RegistrationService {
         return registrationEndpoint;
     }
 
+    public void deregisterClientProxy(ClientProxyImpl clientProxy) {
+        String clientEndpointName = clientProxy.getClientEndpointName();
+        server.internal().getClientManager().removeClientForEndpointName(clientEndpointName);
+    }
+
     public void handleUpdateForClientProxy(ClientProxyImpl clientProxy, RegistrationInfo updatedInfo) {
         RegistrationInfo registrationInfo = clientProxy.getRegistrationInfo();
         registrationInfo.bindingMode = updatedInfo.bindingMode;

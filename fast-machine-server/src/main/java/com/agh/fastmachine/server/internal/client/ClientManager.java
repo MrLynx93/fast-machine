@@ -36,6 +36,10 @@ public class ClientManager {
         return clientsByEndpointName.get(clientEndpointName);
     }
 
+    public void removeClientForEndpointName(String endpointClientName) {
+        clientsByEndpointName.remove(endpointClientName);
+    }
+
     public Map<String, ? extends ClientProxy> getClients() {
         return clientsByEndpointName;
     }
