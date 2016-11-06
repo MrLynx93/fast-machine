@@ -67,6 +67,11 @@ public class BootstrapSequence {
         return this;
     }
 
+    public BootstrapSequence finish() {
+        operations.add(new FinishOperation());
+        return this;
+    }
+
     public void setServerId(int serverId) {
         this.serverId = serverId;
     }
@@ -115,6 +120,22 @@ public class BootstrapSequence {
                     node.getPath()
             );
             return new Lwm2mMqttRequest(topic, LWM2M.ContentType.TLV, WriteParser.serialize(node));
+        }
+    }
+
+    private class FinishOperation implements BootstrapOperation {
+
+        @Override
+        public Lwm2mMqttRequest getRequest() {
+            MQTT.Topic topic = new MQTT.Topic(
+                    LWM2M.Operation.BS_FINISH,
+                    "req",
+                    generateToken(),
+                    BootstrapSequence.this.clientId,
+                    String.valueOf(BootstrapSequence.this.serverId),
+                    LWM2M.Path.empty()
+            );
+            return new Lwm2mMqttRequest(topic, LWM2M.ContentType.NO_FORMAT);
         }
     }
 

@@ -32,16 +32,15 @@ public class BootstrapServerTest {
         configuration.setServerId(BOOTSTRAP_SERVER_NAME);
 
         ExampleMqttInstanceProxy exampleInstance = exampleInstance();
-        ObjectResourceProxy<DoubleResourceValue> resource = exampleInstance.doubleExampleResource;
 
         BootstrapSequence bootstrapSequence = BootstrapSequence.sequenceFor(CLIENT_NAME)
                 .deleteAll()
                 .writeObject(securityObject())
                 .writeInstance(serverInstance())
-                .writeInstance(exampleInstance);
-
-        resource.setValue(new DoubleResourceValue(1.1));
-        bootstrapSequence = bootstrapSequence.writeResource(resource);
+                .writeInstance(bootstrapServerInstance())
+                .writeInstance(exampleInstance)
+                .finish();
+        // TODO bootstrap write resource
 
         BootstrapServer bootstrapServer = new BootstrapServer(BOOTSTRAP_SERVER_NAME, BOOTSTRAP_SERVER_ID);
         bootstrapServer.setSequenceForClient(CLIENT_NAME, bootstrapSequence);
@@ -53,19 +52,28 @@ public class BootstrapServerTest {
         bootstrapInstance.serverUri.setValue(new StringResourceValue(BOOTSTRAP_SERVER_NAME));
         bootstrapInstance.bootstrapServer.setValue(new BooleanResourceValue(true));
         bootstrapInstance.shortServerId.setValue(new IntegerResourceValue(BOOTSTRAP_SERVER_ID));
-        bootstrapInstance.clientHoldOffTime.setValue(new IntegerResourceValue(120));
+//        bootstrapInstance.clientHoldOffTime.setValue(new IntegerResourceValue(120));
 
         SecurityObjectInstanceProxy serverInstance = new SecurityObjectInstanceProxy(1);
-        bootstrapInstance.serverUri.setValue(new StringResourceValue(SERVER_NAME));
-        bootstrapInstance.bootstrapServer.setValue(new BooleanResourceValue(false));
-        bootstrapInstance.shortServerId.setValue(new IntegerResourceValue(SERVER_ID));
-        bootstrapInstance.clientHoldOffTime.setValue(null);
+        serverInstance.serverUri.setValue(new StringResourceValue(SERVER_NAME));
+        serverInstance.bootstrapServer.setValue(new BooleanResourceValue(false));
+        serverInstance.shortServerId.setValue(new IntegerResourceValue(SERVER_ID));
+        serverInstance.clientHoldOffTime.setValue(null);
 
         Map<Integer, ObjectInstanceProxy> instances = new HashMap<>();
         instances.put(bootstrapInstance.getId(), bootstrapInstance);
         instances.put(serverInstance.getId(), serverInstance);
 
         return new ObjectBaseProxy<>(0, instances);
+    }
+
+    private static ObjectInstanceProxy bootstrapServerInstance() {
+        SecurityObjectInstanceProxy bootstrapInstance = new SecurityObjectInstanceProxy(0);
+        bootstrapInstance.serverUri.setValue(new StringResourceValue(BOOTSTRAP_SERVER_NAME));
+        bootstrapInstance.bootstrapServer.setValue(new BooleanResourceValue(true));
+        bootstrapInstance.shortServerId.setValue(new IntegerResourceValue(BOOTSTRAP_SERVER_ID));
+        bootstrapInstance.clientHoldOffTime.setValue(new IntegerResourceValue(120));
+        return bootstrapInstance;
     }
 
     private static ObjectInstanceProxy serverInstance() {

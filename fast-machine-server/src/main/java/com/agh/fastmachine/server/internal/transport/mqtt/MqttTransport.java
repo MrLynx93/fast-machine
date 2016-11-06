@@ -81,6 +81,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
     protected void doSendRequest(Lwm2mMqttRequest request) {
         try {
             mqttClient.publish(request.getTopic().toString(), request.toMqttMessage());
+            System.out.println("Received  " + request.getToken());
         } catch (MqttException e) {
             e.printStackTrace();
         }
@@ -104,7 +105,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
         @Override
         public void messageArrived(String topicString, MqttMessage message) throws Exception {
             MQTT.Topic topic = MQTT.Topic.fromString(topicString.replaceFirst("lynx/", ""));
-            System.out.println(topic);
+            System.out.println("Received " + topic);
 
             if (topic.getType().equals("req")) {
                 switch (topic.getOperation()) {

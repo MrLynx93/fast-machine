@@ -59,7 +59,8 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
 
     @Override
     public LWM2M.Path getPath() {
-        return LWM2M.Path.of(getObject().getId(), id);
+        int objectId = getClass().getAnnotation(Lwm2mObjectInstance.class).objectId();
+        return LWM2M.Path.of(objectId, id);
     }
 
     public void read() {
