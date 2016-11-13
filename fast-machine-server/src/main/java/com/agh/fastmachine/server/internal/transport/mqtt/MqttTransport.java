@@ -13,8 +13,10 @@ import com.agh.fastmachine.server.internal.transport.Transport;
 import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttRegisterRequest;
 import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttRequest;
 import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttResponse;
+import com.agh.fastmachine.server.internal.transport.mqtt.message.MqttRequestBuilder;
 import org.eclipse.paho.client.mqttv3.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,9 +28,14 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
     private ClientManager clientManager;
     private BootstrapService bootstrapService;
 
+    public MqttTransport() {
+        requestBuilder = new MqttRequestBuilder();
+    }
+
     @Override
     public void start(MqttConfiguration configuration) {
         try {
+            this.configuration = configuration;
             mqttClient = new MqttClient(configuration.getBrokerAddress(), "server");
             registrationService = configuration.getServer().internal().getRegistrationService();
             bootstrapService = configuration.getServer().internal().getBootstrapService();
@@ -80,8 +87,8 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
     @Override
     protected void doSendRequest(Lwm2mMqttRequest request) {
         try {
-            mqttClient.publish(request.getTopic().toString(), request.toMqttMessage());
-            System.out.println("Received  " + request.getToken());
+            mqttClient.publish("lynx/" + request.getTopic().toString(), request.toMqttMessage());
+            System.out.println("Sent  " + request.getTopic());
         } catch (MqttException e) {
             e.printStackTrace();
         }
@@ -148,16 +155,21 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
         if (!registrationService.isClientRegistered(endpointClientName)) {
             ClientProxyImpl clientProxy = clientManager.createClient(endpointClientName);
+            clientProxy.setServerId(configuration.getServerId());
+            clientProxy.setRegisterTime(new Date());
+            clientProxy.setLastUpdateTime(new Date());
             registrationService.registerClientProxy(clientProxy, registrationInfo);
             registeredClients.put(request.getTopic().getClientId(), clientProxy);
 
             Lwm2mMqttResponse response = createRegisterResponse(request);
             doSendResponse(response);
+            registrationService.registerFinished(clientProxy);
         }
     }
 
     private void handleUpdate(Lwm2mMqttRegisterRequest request) {
         ClientProxyImpl clientProxy = registeredClients.get(request.getTopic().getClientId());
+        clientProxy.setLastUpdateTime(new Date());
         RegistrationInfo updatedInfo = parseRegistrationInfo(request);
         registrationService.handleUpdateForClientProxy(clientProxy, updatedInfo);
 

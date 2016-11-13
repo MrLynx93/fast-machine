@@ -11,6 +11,7 @@ import java.util.Map;
 public class ObjectBaseProxy<T extends ObjectInstanceProxy> extends ObjectNodeProxy<ObjectBaseProxy.Internal> implements ObjectBaseModel {
     private Map<Integer, ObjectInstanceProxy> instances = new HashMap<>();
     private String path;
+    private String name;
 
     public ObjectBaseProxy(int id) {
         super(id);
@@ -21,6 +22,14 @@ public class ObjectBaseProxy<T extends ObjectInstanceProxy> extends ObjectNodePr
         super(id);
         this.instances = instances;
         internal = new Internal();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override

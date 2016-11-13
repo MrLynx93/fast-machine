@@ -9,6 +9,9 @@ import com.agh.fastmachine.server.internal.transport.Transport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 public class ClientProxyImpl extends BaseRegistrationListener implements ClientProxy {
     private static final Logger LOG = LoggerFactory.getLogger(ClientProxyImpl.class);
 
@@ -22,6 +25,8 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
     private String clientUrl;
     private final Server server;
     private RegistrationInfo registrationInfo;
+    private Date lastUpdateTime;
+    private Date registerTime;
 
     public ClientProxyImpl(Server server, String endpointClientName) {
         this.server = server;
@@ -52,6 +57,10 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
         return serverId;
     }
 
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
+    }
+
     @Override
     public String getClientEndpointName() {
         return endpointClientName;
@@ -65,6 +74,24 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
     @Override
     public ClientProxyStatus getStatus() {
         return status;
+    }
+
+    @Override
+    public Date getLastUpdateTime() {
+        return this.lastUpdateTime;
+    }
+
+    public void setLastUpdateTime(Date time) {
+        this.lastUpdateTime = time;
+    }
+
+    @Override
+    public Date getRegisterTime() {
+        return this.lastUpdateTime;
+    }
+
+    public void setRegisterTime(Date time) {
+        this.registerTime = time;
     }
 
     public void setStatus(ClientProxyStatus status) {

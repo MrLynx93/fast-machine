@@ -18,6 +18,11 @@ public class ObjectMultipleResourceProxy<T extends ResourceValue<?>> extends Obj
     }
 
     @Override
+    public boolean isMultiple() {
+        return true;
+    }
+
+    @Override
     public T getValue() {
         return values.get(0);
     }

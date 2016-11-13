@@ -20,31 +20,31 @@ public class BootstrapServerTest {
     private static final String BROKER_ADDRESS = "tcp://localhost:1883";
     private static final String BOOTSTRAP_SERVER_NAME = "lynx-bootstrap-server";
     private static final String SERVER_NAME = "lynx-server";
-    private static final String CLIENT_NAME = "lynx";
+    private static final String CLIENT_NAME = "lynx_ep";
     private static final int BOOTSTRAP_SERVER_ID = 555;
     private static final int SERVER_ID = 123;
 
     // TODO access control
     public static void main(String[] args) {
-        MqttConfiguration configuration = new MqttConfiguration();
-        configuration.setQos(1);
-        configuration.setBrokerAddress(BROKER_ADDRESS);
-        configuration.setServerId(BOOTSTRAP_SERVER_NAME);
+            MqttConfiguration configuration = new MqttConfiguration();
+            configuration.setQos(1);
+            configuration.setBrokerAddress(BROKER_ADDRESS);
+            configuration.setServerId(BOOTSTRAP_SERVER_NAME);
 
-        ExampleMqttInstanceProxy exampleInstance = exampleInstance();
+            ExampleMqttInstanceProxy exampleInstance = exampleInstance();
 
-        BootstrapSequence bootstrapSequence = BootstrapSequence.sequenceFor(CLIENT_NAME)
-                .deleteAll()
-                .writeObject(securityObject())
-                .writeInstance(serverInstance())
-                .writeInstance(bootstrapServerInstance())
-                .writeInstance(exampleInstance)
-                .finish();
-        // TODO bootstrap write resource
+            BootstrapSequence bootstrapSequence = BootstrapSequence.sequenceFor(CLIENT_NAME)
+                    .deleteAll()
+                    .writeObject(securityObject())
+                    .writeInstance(serverInstance())
+                    .writeInstance(bootstrapServerInstance())
+                    .writeInstance(exampleInstance)
+                    .finish();
+            // TODO bootstrap write resource
 
-        BootstrapServer bootstrapServer = new BootstrapServer(BOOTSTRAP_SERVER_NAME, BOOTSTRAP_SERVER_ID);
-        bootstrapServer.setSequenceForClient(CLIENT_NAME, bootstrapSequence);
-        bootstrapServer.start(configuration);
+            BootstrapServer bootstrapServer = new BootstrapServer(BOOTSTRAP_SERVER_NAME, BOOTSTRAP_SERVER_ID);
+            bootstrapServer.setSequenceForClient(CLIENT_NAME, bootstrapSequence);
+            bootstrapServer.start(configuration);
     }
 
     private static ObjectBaseProxy<SecurityObjectInstanceProxy> securityObject() {

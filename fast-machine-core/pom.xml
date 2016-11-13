@@ -7,11 +7,15 @@
     <parent>
         <groupId>fast-machine</groupId>
         <artifactId>fast-machine-parent</artifactId>
-        <version>${fast-machine.version}</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
 
+    <properties>
+        <fast-machine.version>1.0-SNAPSHOT</fast-machine.version>
+    </properties>
+
     <artifactId>fast-machine-core</artifactId>
-    <version>${fast-machine.version}</version>
+    <version>1.0-SNAPSHOT</version>
 
     <dependencies>
         <dependency>

@@ -15,12 +15,25 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
     private Class<T> valueClass;
     protected boolean isChanged = true;
     boolean isDeleted = false;
+    private String name;
 
     public ObjectResourceProxy(int id, T value, Class<T> valueClass) {
         super(id);
         this.value = value;
         this.valueClass = valueClass;
         internal = new Internal();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean isMultiple() {
+        return false;
     }
 
     @Override

@@ -133,7 +133,7 @@ public class MqttRequestBuilder extends RequestBuilder<Lwm2mMqttRequest> {
                 operation,
                 "req",
                 generateToken(),
-                node.getClientProxy().getClientId(),
+                node.getClientProxy().getClientEndpointName(),
                 node.getClientProxy().getServerId(),
                 node.getPath()
         );

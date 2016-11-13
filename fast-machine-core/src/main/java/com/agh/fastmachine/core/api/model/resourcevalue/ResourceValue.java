@@ -10,6 +10,14 @@ public abstract class ResourceValue<T> implements VisitableNode {
     public ResourceValue() {
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public T getValue() {
+        return value;
+    }
+
     public ResourceValue(T value, int id) {
         this.id = id;
         this.value = value;

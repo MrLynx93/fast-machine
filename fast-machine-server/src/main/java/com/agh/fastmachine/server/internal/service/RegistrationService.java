@@ -53,6 +53,10 @@ public class RegistrationService {
         clientProxy.onUpdate(clientProxy);
     }
 
+    public void registerFinished(ClientProxyImpl clientProxy) {
+        clientProxy.onRegister(clientProxy);
+    }
+
     public void deregisterFinished(ClientProxyImpl clientProxy) {
         clientProxy.setStatus(ClientProxyStatus.BOOTSTRAPPED);
         clientProxy.onDeregister(clientProxy);
