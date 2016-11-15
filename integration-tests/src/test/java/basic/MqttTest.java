@@ -37,10 +37,17 @@ public class MqttTest {
         instance.write();
 
         Thread.sleep(1000);
-        instance.batteryLevel.setValue(new IntegerResourceValue(2));
-        instance.batteryLevel.write();
+//        instance.batteryLevel.setValue(new IntegerResourceValue(2));
+        instance.batteryLevel.read();
 
-        Thread.sleep(100000);
+        Thread.sleep(2000);
+        instance.read();
+
+        Thread.sleep(2000);
+        obj.read();
+
+        Thread.sleep(2000);
+
     }
 
 }

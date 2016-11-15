@@ -50,6 +50,7 @@ public class ObjectMultipleResourceProxy<T extends ResourceValue<?>> extends Obj
     public void setValues(List<T> values) {
         this.values.clear();
         for (int id = 0; id < values.size(); id++) {
+            values.get(id).id = id;
             this.values.put(id, values.get(id));
         }
         this.isChanged = true;
