@@ -95,6 +95,11 @@ public class WriteAccessVisitor implements NodeVisitor {
     }
 
     @Override
+    public void visit(LinkResourceValue resourceValue) {
+
+    }
+
+    @Override
     public <T extends ObjectInstanceModel> void visit(ObjectBaseModel<T> objectBase) {
 
     }

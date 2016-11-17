@@ -60,6 +60,11 @@ public class PlainTextWriterVisitor extends AbstractWriterVisitor {
         setAsciiBytes(resourceValue);
     }
 
+    @Override
+    public void visit(LinkResourceValue resourceValue) {
+        setAsciiBytes(resourceValue);
+    }
+
     private void setAsciiBytes(ResourceValue resourceValue) {
         bytes = resourceValue.value.toString().getBytes(Charset.forName("US-ASCII"));
     }

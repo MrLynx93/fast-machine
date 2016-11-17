@@ -94,13 +94,13 @@ public class BootstrapServerTest {
         exampleInstance.batteryLevel.setValue(new IntegerResourceValue(80));
         exampleInstance.doubleExampleResource.setValue(new DoubleResourceValue(0.1));
         exampleInstance.stringExampleResource.setValue(new StringResourceValue("example-string"));
-        exampleInstance.lightOn.setValue(null);
+        exampleInstance.lightOn.setValue(new BooleanResourceValue(false));
         exampleInstance.opaqueExampleResource.setValue(new OpaqueResourceValue(opaqueValue));
         exampleInstance.firmwireUpdateResource.setValue(null);
-        exampleInstance.linkExampleResource.setValue(null); // TODO LINK VALUE
+        exampleInstance.linkExampleResource.setValue(new LinkResourceValue(new Link(0, 0))); // TODO LINK VALUE
         exampleInstance.optionalIntegerResource.setValue(null);
         exampleInstance.multipleStringExample.setValues(Arrays.asList(new StringResourceValue("res1"), new StringResourceValue("res2")));
-        exampleInstance.multipleOptionalStringExample.setValues(new ArrayList<StringResourceValue>());
+        exampleInstance.multipleOptionalStringExample.setValues(null);
         return exampleInstance;
     }
 }

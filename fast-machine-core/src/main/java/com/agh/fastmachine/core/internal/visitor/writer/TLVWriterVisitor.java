@@ -164,6 +164,15 @@ public class TLVWriterVisitor extends AbstractWriterVisitor {
         content = resourceValue.value;
     }
 
+    @Override
+    public void visit(LinkResourceValue resourceValue) {
+        byte[] object = ByteBuffer.allocate(2).putShort(resourceValue.value.getObjectId().shortValue()).array();
+        byte[] instance = ByteBuffer.allocate(2).putShort(resourceValue.value.getInstanceId().shortValue()).array();
+        ByteBuffer buffer = ByteBuffer.allocate(5);
+        buffer.put(object);
+        buffer.put(instance);
+        content = buffer.array();
+    }
 
     private byte[] createHeader(int type, int id, int length) {
         //header: type(byte) id(1 or 2 bytes) length( 0 to 3 bytes)

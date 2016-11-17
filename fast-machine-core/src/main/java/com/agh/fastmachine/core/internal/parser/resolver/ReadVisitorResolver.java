@@ -81,4 +81,8 @@ public class ReadVisitorResolver implements NodeVisitor {
         reader = new PlainTextReaderVisitor(objectFactory);
     }
 
+    @Override
+    public void visit(LinkResourceValue resourceValue) {
+        reader = new PlainTextReaderVisitor(objectFactory);
+    }
 }

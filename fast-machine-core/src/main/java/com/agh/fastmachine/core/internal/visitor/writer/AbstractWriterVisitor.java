@@ -72,4 +72,9 @@ public abstract class AbstractWriterVisitor implements NodeVisitor {
     public void visit(OpaqueResourceValue resourceValue) {
         throw new IllegalStateException();
     }
+
+    @Override
+    public void visit(LinkResourceValue resourceValue) {
+        throw new IllegalStateException();
+    }
 }

@@ -6,10 +6,7 @@ import com.agh.fastmachine.core.api.model.resourcevalue.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class TLVReaderVisitor extends AbstractReaderVisitor {
     private byte[] content;
@@ -139,6 +136,14 @@ public class TLVReaderVisitor extends AbstractReaderVisitor {
     }
 
     @Override
+    public void visit(LinkResourceValue resourceValue) {
+        short objectId = ByteBuffer.wrap(Arrays.copyOfRange(content, 0, 2)).getShort();
+        short instanceId = ByteBuffer.wrap(Arrays.copyOfRange(content, 3, 5)).getShort();
+        Link link = new Link((int) objectId, (int) instanceId);
+        value = new LinkResourceValue(link);
+    }
+
+    @Override
     public void visit(OpaqueResourceValue resourceValue) {
         byte[] copy = new byte[length];
         System.arraycopy(content, position, copy, 0, length);
@@ -179,6 +184,14 @@ public class TLVReaderVisitor extends AbstractReaderVisitor {
 
         this.id = id;
         this.length = length;
+    }
+
+    private long readNumberOfLength(int len) {
+        long result = 0;
+        for (int i = len - 1; i >= 0; i--) {
+            result |= (content[position++] & 0xFF) << i * 8;
+        }
+        return result;
     }
 
     private long readNumber() {

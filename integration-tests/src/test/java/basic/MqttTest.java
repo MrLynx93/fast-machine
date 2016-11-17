@@ -1,13 +1,14 @@
 package basic;
 
-import com.agh.fastmachine.core.api.model.resourcevalue.DoubleResourceValue;
-import com.agh.fastmachine.core.api.model.resourcevalue.IntegerResourceValue;
+import com.agh.fastmachine.core.api.model.resourcevalue.*;
 import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.ServerConfiguration;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
 import util.model.ExampleMqttInstanceProxy;
+
+import java.util.Arrays;
 
 public class MqttTest {
     private static String BROKER_ADDRESS = "tcp://localhost:1883";
@@ -26,28 +27,31 @@ public class MqttTest {
         server.setConfiguration(configuration);
         server.start(transportConfiguration);
 
-        Thread.sleep(10000);
+        Thread.sleep(5000);
         ClientProxy client = server.getClientForEndpointName("lynx_ep");
         ObjectBaseProxy<ExampleMqttInstanceProxy> obj = client.getObjectTree().getObjectForType(ExampleMqttInstanceProxy.class);
 
-        ExampleMqttInstanceProxy instance = obj.getInstance(1);
-        instance.batteryLevel.setValue(new IntegerResourceValue(1));
-        instance.doubleExampleResource.setValue(new DoubleResourceValue(0.01));
-        instance.stringExampleResource.setValue(null);
-        instance.write();
+        ExampleMqttInstanceProxy instance = new ExampleMqttInstanceProxy();
+        instance.batteryLevel.setValue(new IntegerResourceValue(10));
+        instance.doubleExampleResource.setValue(new DoubleResourceValue(0.1));
+        instance.stringExampleResource.setValue(new StringResourceValue("ABC"));
+        instance.lightOn.setValue(new BooleanResourceValue(false));
+        instance.opaqueExampleResource.setValue(new OpaqueResourceValue("ABC".getBytes()));
+        instance.firmwireUpdateResource.setValue(null);
+        instance.linkExampleResource.setValue(new LinkResourceValue(new Link(1, 1)));
+        instance.optionalIntegerResource.setValue(new IntegerResourceValue(12));
+        instance.multipleStringExample.setValues(Arrays.asList(new StringResourceValue("A"), new StringResourceValue("B")));
+        instance.multipleOptionalStringExample.setValues(null);
+        client.create(instance, 20);
 
-        Thread.sleep(1000);
-//        instance.batteryLevel.setValue(new IntegerResourceValue(2));
-        instance.batteryLevel.read();
+        Thread.sleep(2000);
+        instance.batteryLevel.setValue(new IntegerResourceValue(99));
+        instance.batteryLevel.write();
 
         Thread.sleep(2000);
         instance.read();
 
-        Thread.sleep(2000);
-        obj.read();
-
-        Thread.sleep(2000);
-
+        System.out.println("END");
     }
 
 }

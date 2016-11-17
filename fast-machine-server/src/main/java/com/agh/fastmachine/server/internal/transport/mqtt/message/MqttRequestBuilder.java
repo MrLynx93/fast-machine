@@ -16,7 +16,7 @@ public class MqttRequestBuilder extends RequestBuilder<Lwm2mMqttRequest> {
     @Override
     public Lwm2mMqttRequest buildCreateRequest(ObjectInstanceProxy instance, int id) {
         MQTT.Topic topic = createTopic(instance, M_CREATE);
-        topic.setPath(LWM2M.Path.of(instance.getObject().getId(), id));
+        topic.setPath(LWM2M.Path.of(instance.getObjectId(), id));
 
         return new Lwm2mMqttRequest(
                 topic,
@@ -28,7 +28,7 @@ public class MqttRequestBuilder extends RequestBuilder<Lwm2mMqttRequest> {
     @Override
     public Lwm2mMqttRequest buildCreateRequest(ObjectInstanceProxy instance) { // TODO insert ClientProxy (and id) into instance
         MQTT.Topic topic = createTopic(instance, M_CREATE);
-        topic.setPath(LWM2M.Path.of(instance.getObject().getId()));
+        topic.setPath(LWM2M.Path.of(instance.getObjectId()));
 
         return new Lwm2mMqttRequest(
                 topic,

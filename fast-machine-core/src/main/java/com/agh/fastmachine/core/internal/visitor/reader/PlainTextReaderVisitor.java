@@ -94,6 +94,13 @@ public class PlainTextReaderVisitor extends AbstractReaderVisitor {
         this.resourceValue = new OpaqueResourceValue(content); //TODO to trzeba by usunąć, bo to nie plaintext
     }
 
+    @Override
+    public void visit(LinkResourceValue resourceValue) {
+        String[] elements = new String(content, Charset.forName("US-ASCII")).split(":");
+        Link link = new Link(Integer.parseInt(elements[0]), Integer.parseInt(elements[1]));
+        this.resourceValue = new LinkResourceValue(link);
+    }
+
     //////////////////////////NOT USED/////////////////////////////////
 
     @Override

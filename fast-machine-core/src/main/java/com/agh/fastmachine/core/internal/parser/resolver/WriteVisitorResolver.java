@@ -75,4 +75,8 @@ public class WriteVisitorResolver implements NodeVisitor {
         writer = new PlainTextWriterVisitor();
     }
 
+    @Override
+    public void visit(LinkResourceValue resourceValue) {
+        writer = new PlainTextWriterVisitor();
+    }
 }

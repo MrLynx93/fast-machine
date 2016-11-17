@@ -31,4 +31,6 @@ public interface NodeVisitor {
     void visit(LongResourceValue resourceValue);
 
     void visit(OpaqueResourceValue resourceValue);
+
+    void visit(LinkResourceValue resourceValue);
 }
