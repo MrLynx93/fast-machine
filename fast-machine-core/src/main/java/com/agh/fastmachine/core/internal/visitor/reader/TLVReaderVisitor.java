@@ -141,6 +141,7 @@ public class TLVReaderVisitor extends AbstractReaderVisitor {
         short instanceId = ByteBuffer.wrap(Arrays.copyOfRange(content, 3, 5)).getShort();
         Link link = new Link((int) objectId, (int) instanceId);
         value = new LinkResourceValue(link);
+        position += 4;
     }
 
     @Override

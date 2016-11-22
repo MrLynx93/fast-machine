@@ -104,7 +104,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
     @Override
     protected boolean isNotify(Lwm2mRequest request, Lwm2mResponse response) {
-        return request.getOperation() == LWM2M.Operation.I_NOTIFY && response.isSuccess();
+        return request.getOperation() == LWM2M.Operation.I_OBSERVE && response.isSuccess();
     }
 
     private MqttCallback mqttCallback = new MqttCallback() {

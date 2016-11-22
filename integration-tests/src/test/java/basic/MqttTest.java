@@ -4,7 +4,9 @@ import com.agh.fastmachine.core.api.model.resourcevalue.*;
 import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.ServerConfiguration;
+import com.agh.fastmachine.server.api.listener.ObservationListener;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
+import com.agh.fastmachine.server.api.model.ObjectResourceProxy;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
 import util.model.ExampleMqttInstanceProxy;
 
@@ -45,11 +47,28 @@ public class MqttTest {
         client.create(instance, 20);
 
         Thread.sleep(2000);
-        instance.batteryLevel.setValue(new IntegerResourceValue(99));
-        instance.batteryLevel.write();
+        obj.discover();
 
         Thread.sleep(2000);
-        instance.read();
+        instance.discover();
+
+        Thread.sleep(2000);
+        instance.batteryLevel.discover();
+
+        Thread.sleep(2000);
+        instance.multipleStringExample.discover();
+
+
+
+//        Thread.sleep(2000);
+//        instance.delete();
+//
+//        Thread.sleep(5000);
+//
+//
+//        client.create(instance, 20);
+//        Thread.sleep(2000);
+//        instance.delete();
 
         System.out.println("END");
     }

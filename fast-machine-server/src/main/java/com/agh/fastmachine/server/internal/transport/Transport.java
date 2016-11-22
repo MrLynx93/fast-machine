@@ -119,6 +119,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
                 }
             }
             LOG.debug("Discovered object: {}", object.getPath());
+            LOG.debug("Discover message: {}", response.getPayloadText());
         }
     }
 
@@ -133,6 +134,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
                 instance.internal().updateAttributes(attributes);
             }
             LOG.debug("Discovered instance: {}", instance.getPath());
+            LOG.debug("Discover message: {}", response.getPayloadText());
         }
     }
 
@@ -147,6 +149,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
                 resource.internal().updateAttributes(attributes);
             }
             LOG.debug("Discovered resource: {}", resource.getPath());
+            LOG.debug("Discover message: {}", response.getPayloadText());
         }
     }
 
