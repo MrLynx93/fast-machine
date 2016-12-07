@@ -53,13 +53,13 @@ public class CoapRequestBuilder extends RequestBuilder<Lwm2mCoapRequest> {
     }
 
     @Override
-    public Lwm2mCoapRequest buildExecuteRequest(ObjectResourceProxy<?> resource, byte[] arguments) {
+    public Lwm2mCoapRequest buildExecuteRequest(ObjectResourceProxy<?> resource, String arguments) {
         return new Lwm2mCoapRequest(
                 resource.getPath(),
                 LWM2M.Operation.M_EXECUTE,
                 generateToken(),
-                LWM2M.ContentType.OPAQUE, // TODO argument should be String!!!
-                arguments
+                LWM2M.ContentType.PLAIN_TEXT, // TODO argument should be String!!!
+                arguments.getBytes()
         );
     }
 

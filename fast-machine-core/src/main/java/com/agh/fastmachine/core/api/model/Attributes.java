@@ -6,7 +6,7 @@ public class Attributes {
     public static final String MAXIMUM_PERIOD = "pmax";
     public static final String GREATER_THAN = "gt";
     public static final String LESS_THAN = "lt";
-    public static final String STEP = "st";
+    public static final String STEP = "stp";
     public static final String DIMENSION = "dim";
     public static final String CANCEL = "cancel";
 
@@ -43,7 +43,7 @@ public class Attributes {
         return builder.toString();
     }
 
-    private StringBuilder buildStringWithDelimiter(String delimiter) {
+    public StringBuilder buildStringWithDelimiter(String delimiter) {
         StringBuilder builder = serializeBasicAttributes(delimiter);
         if (isNumeric) {
             appendNumericAttributes(builder, delimiter);

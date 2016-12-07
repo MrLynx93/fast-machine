@@ -95,7 +95,7 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
         transport.writeAttributes(this);
     }
 
-    public void execute(byte[] arguments) {
+    public void execute(String arguments) {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }

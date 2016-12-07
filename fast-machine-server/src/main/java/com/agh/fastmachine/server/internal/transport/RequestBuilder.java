@@ -15,7 +15,7 @@ public abstract class RequestBuilder<REQ extends Lwm2mRequest> {
     public abstract REQ buildCreateRequest(ObjectInstanceProxy instance);
     public abstract REQ buildDeleteRequest(ObjectInstanceProxy instance);
     public abstract REQ buildDiscoverRequest(ObjectNodeProxy node);
-    public abstract REQ buildExecuteRequest(ObjectResourceProxy<?> resource, byte[] arguments);
+    public abstract REQ buildExecuteRequest(ObjectResourceProxy<?> resource, String arguments);
     public abstract REQ buildObserveRequest(ObjectNodeProxy<?> node);
     public abstract REQ buildCancelObserveRequest(ObjectNodeProxy<?> node);
     public abstract REQ buildReadRequest(ObjectBaseProxy<?> object);

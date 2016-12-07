@@ -1,5 +1,6 @@
 package com.agh.fastmachine.server.internal.transport.mqtt.message;
 
+import com.agh.fastmachine.core.internal.parser.WriteAttributesParser;
 import com.agh.fastmachine.core.internal.parser.WriteParser;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
@@ -54,11 +55,11 @@ public class MqttRequestBuilder extends RequestBuilder<Lwm2mMqttRequest> {
     }
 
     @Override
-    public Lwm2mMqttRequest buildExecuteRequest(ObjectResourceProxy<?> resource, byte[] arguments) {
+    public Lwm2mMqttRequest buildExecuteRequest(ObjectResourceProxy<?> resource, String arguments) {
         return new Lwm2mMqttRequest(
                 createTopic(resource, M_EXECUTE),
-                LWM2M.ContentType.OPAQUE, // TODO argument should be String!!!
-                arguments
+                LWM2M.ContentType.PLAIN_TEXT, // TODO argument should be String!!!
+                arguments.getBytes()
         );
     }
 
@@ -104,9 +105,15 @@ public class MqttRequestBuilder extends RequestBuilder<Lwm2mMqttRequest> {
 
     @Override
     public Lwm2mMqttRequest buildWriteAttributesRequest(ObjectNodeProxy<?> node) {
+        String string = node.getAttributes().buildStringWithDelimiter("&").toString();
+        if (string.startsWith("&")) {
+            string = string.substring(1);
+        }
+
         return new Lwm2mMqttRequest(
                 createTopic(node, M_WRITE_ATTRIBUTE),
-                LWM2M.ContentType.LINK_FORMAT
+                LWM2M.ContentType.LINK_FORMAT,
+                string.getBytes()
         );
     }
 

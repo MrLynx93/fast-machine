@@ -155,7 +155,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
 
     /********************  EXECUTE  ********************/
 
-    public void execute(ObjectResourceProxy<?> resource, byte[] arguments) {
+    public void execute(ObjectResourceProxy<?> resource, String arguments) {
         REQ request = requestBuilder.buildExecuteRequest(resource, arguments);
         PendingRequest pendingRequest = sendRequest(request);
 

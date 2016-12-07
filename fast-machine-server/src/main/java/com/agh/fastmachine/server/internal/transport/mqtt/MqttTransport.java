@@ -60,7 +60,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
             mqttClient.subscribe("lynx/mr/res/+/+/" + configuration.getServerId() + "/#");
             mqttClient.subscribe("lynx/mw/res/+/+/" + configuration.getServerId() + "/#");
             mqttClient.subscribe("lynx/me/res/+/+/" + configuration.getServerId() + "/+/+/+");
-            mqttClient.subscribe("lynx/mc/res/+/+/" + configuration.getServerId() + "/#");
+            mqttClient.subscribe("lynx/mc/res/+/+/" + configuration.getServerId() + "/+/+");
             mqttClient.subscribe("lynx/md/res/+/+/" + configuration.getServerId() + "/+/+");
             mqttClient.subscribe("lynx/ma/res/+/+/" + configuration.getServerId() + "/#");
             mqttClient.subscribe("lynx/mm/res/+/+/" + configuration.getServerId() + "/#"); // TODO in doc md -> mm

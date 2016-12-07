@@ -17,10 +17,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BootstrapServerTest {
-    private static final String BROKER_ADDRESS = "tcp://localhost:1883";
+    private static final String PUBLIC_BROKER_ADDRESS = "tcp://broker.hivemq.com:1883";
+    private static final String AMAZON_BROKER_ADDRESS = "tcp://ec2-52-212-253-117.eu-west-1.compute.amazonaws.com:1883";
+    private static final String PRIVATE_BROKER_ADDRESS = "tcp://localhost:1883";
+
+    private static final String LOCAL_CLIENT_NAME = "lynx_ep";
+    private static final String ANDROID_CLIENT_NAME = "client-android";
+
+
+
+
+    private static final String BROKER_ADDRESS = AMAZON_BROKER_ADDRESS;
     private static final String BOOTSTRAP_SERVER_NAME = "lynx-bootstrap-server";
     private static final String SERVER_NAME = "lynx-server";
-    private static final String CLIENT_NAME = "lynx_ep";
+    private static final String CLIENT_NAME = ANDROID_CLIENT_NAME;
     private static final int BOOTSTRAP_SERVER_ID = 555;
     private static final int SERVER_ID = 123;
 

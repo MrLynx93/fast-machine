@@ -21,6 +21,14 @@ public class WriteAttributesParser {
     private static Pattern PATTERN = Pattern.compile("<(?<object>\\d+)/(?<instance>\\d+)/(?<resource>\\d+)/>");
     private static Pattern PATTERN_ATTR = Pattern.compile("\\w+=\\w+");
 
+//    public String serializeAttributes(Attributes attributes) {
+//        StringBuilder builder = new StringBuilder();
+//        if (attributes.minimumPeriod != null) {
+//            builder.append(attributes.toDiscoverString())
+//        }
+//    }
+
+
     public Attributes parseResourceWriteAttributes(String payload, ObjectResourceModel<?> resource) {
         Class valueType = resource.getValueType();
         Attributes attributes = new Attributes(isNumericValue(valueType));
