@@ -10,6 +10,7 @@ import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.api.model.ObjectResourceProxy;
 import com.agh.fastmachine.server.internal.client.ClientProxyStatus;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
+import util.model.AndroidUtilsInstanceProxy;
 import util.model.ExampleMqttInstanceProxy;
 
 import java.util.Arrays;
@@ -36,6 +37,7 @@ public class MqttTest {
 
         ServerConfiguration configuration = new ServerConfiguration();
         configuration.addObjectSupport(ExampleMqttInstanceProxy.class);
+        configuration.addObjectSupport(AndroidUtilsInstanceProxy.class);
         configuration.setTransport(ServerConfiguration.TRASPORT_MQTT);
 
         server.setConfiguration(configuration);
@@ -44,57 +46,73 @@ public class MqttTest {
             @Override
             public void onRegister(ClientProxy client) {
                 executor.submit(() -> {
-                    ObjectBaseProxy<ExampleMqttInstanceProxy> obj = client.getObjectTree().getObjectForType(ExampleMqttInstanceProxy.class);
+//                    ObjectBaseProxy<ExampleMqttInstanceProxy> obj = client.getObjectTree().getObjectForType(ExampleMqttInstanceProxy.class);
                     try {
-                        ExampleMqttInstanceProxy instance = new ExampleMqttInstanceProxy();
-                        instance.batteryLevel.setValue(new IntegerResourceValue(10));
-                        instance.doubleExampleResource.setValue(new DoubleResourceValue(0.1));
-                        instance.stringExampleResource.setValue(new StringResourceValue("ABC"));
-                        instance.lightOn.setValue(new BooleanResourceValue(false));
-                        instance.opaqueExampleResource.setValue(new OpaqueResourceValue("ABC".getBytes()));
-                        instance.firmwireUpdateResource.setValue(null);
-                        instance.linkExampleResource.setValue(new LinkResourceValue(new Link(1, 1)));
-                        instance.optionalIntegerResource.setValue(new IntegerResourceValue(12));
-                        instance.multipleStringExample.setValues(Arrays.asList(new StringResourceValue("A"), new StringResourceValue("B")));
-                        instance.multipleOptionalStringExample.setValues(null);
-                        client.create(instance, 20);
+//                        ExampleMqttInstanceProxy instance = new ExampleMqttInstanceProxy();
+//                        instance.batteryLevel.setValue(new IntegerResourceValue(10));
+//                        instance.doubleExampleResource.setValue(new DoubleResourceValue(0.1));
+//                        instance.stringExampleResource.setValue(new StringResourceValue("ABC"));
+//                        instance.lightOn.setValue(new BooleanResourceValue(false));
+//                        instance.opaqueExampleResource.setValue(new OpaqueResourceValue("ABC".getBytes()));
+//                        instance.firmwireUpdateResource.setValue(null);
+//                        instance.linkExampleResource.setValue(new LinkResourceValue(new Link(1, 1)));
+//                        instance.optionalIntegerResource.setValue(new IntegerResourceValue(12));
+//                        instance.multipleStringExample.setValues(Arrays.asList(new StringResourceValue("A"), new StringResourceValue("B")));
+//                        instance.multipleOptionalStringExample.setValues(null);
+//                        client.create(instance, 20);
+
+//
+//                        Thread.sleep(2000);
+//
+//                        obj.getAttributes().minimumPeriod = 5;
+//                        obj.getAttributes().maximumPeriod = 5;
+//                        obj.writeAttributes();
+//                        obj.discover();
+//
+//                        Thread.sleep(2000);
+//                        instance.getAttributes().minimumPeriod = 10;
+//                        instance.getAttributes().maximumPeriod = 15;
+//                        instance.writeAttributes();
+//                        instance.discover();
+//
+//                        Thread.sleep(2000);
+//                        instance.batteryLevel.getAttributes().lessThan = 15.0;
+//                        instance.batteryLevel.getAttributes().greaterThan = 10.0;
+//                        instance.batteryLevel.getAttributes().maximumPeriod = 60;
+//                        instance.batteryLevel.getAttributes().minimumPeriod = 20;
+//                        instance.batteryLevel.writeAttributes();
+//                        instance.batteryLevel.discover();
+//
+//                        instance.batteryLevel.observe(r -> {
+//                            System.out.println("resource notif" + r.getValue().value);
+//                        });
 
 
-                        Thread.sleep(2000);
+                        ObjectBaseProxy<AndroidUtilsInstanceProxy> obj = client.getObjectTree().getObjectForType(AndroidUtilsInstanceProxy.class);
+                        AndroidUtilsInstanceProxy instance = obj.getInstance(0);
 
-                        obj.getAttributes().minimumPeriod = 5;
-                        obj.getAttributes().maximumPeriod = 5;
-                        obj.writeAttributes();
-                        obj.discover();
+                        Thread.sleep(5000);
 
-                        Thread.sleep(2000);
-                        instance.getAttributes().minimumPeriod = 10;
-                        instance.getAttributes().maximumPeriod = 15;
-                        instance.writeAttributes();
-                        instance.discover();
+                        instance.flashlight.read();
+                        boolean flash = instance.flashlight.getValue().value;
 
-                        Thread.sleep(2000);
-                        instance.batteryLevel.getAttributes().lessThan = 15.0;
-                        instance.batteryLevel.getAttributes().greaterThan = 10.0;
-                        instance.batteryLevel.getAttributes().maximumPeriod = 60;
-                        instance.batteryLevel.getAttributes().minimumPeriod = 20;
-                        instance.batteryLevel.writeAttributes();
-                        instance.batteryLevel.discover();
-
-                        instance.batteryLevel.observe(r -> {
-                            System.out.println("resource notif" + r.getValue().value);
-                        });
-
-                        Thread.sleep(10000);
-
-
-                        int value = 0;
                         while (client.getStatus() == ClientProxyStatus.REGISTERED) {
-                            instance.batteryLevel.setValue(new IntegerResourceValue(value++));
+                            instance.flashlight.setValue(new BooleanResourceValue(!flash));
                             instance.write();
-                            Thread.sleep(2000);
+                            flash = !flash;
+                            Thread.sleep(1000);
+
+                            instance.vibrate.execute("");
+                            Thread.sleep(1000);
                         }
-                        System.out.println("END");
+
+//                        int value = 0;
+//                        while (client.getStatus() == ClientProxyStatus.REGISTERED) {
+//                            instance.batteryLevel.read();
+////                            instance.write();
+//                            Thread.sleep(1000);
+//                        }
+//                        System.out.println("END");
 
 
                     } catch (InterruptedException e) {

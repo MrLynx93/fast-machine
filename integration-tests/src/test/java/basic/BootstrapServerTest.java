@@ -26,11 +26,11 @@ public class BootstrapServerTest {
 
 
 
-
     private static final String BROKER_ADDRESS = AMAZON_BROKER_ADDRESS;
+    private static final String CLIENT_NAME = ANDROID_CLIENT_NAME;
+
     private static final String BOOTSTRAP_SERVER_NAME = "lynx-bootstrap-server";
     private static final String SERVER_NAME = "lynx-server";
-    private static final String CLIENT_NAME = ANDROID_CLIENT_NAME;
     private static final int BOOTSTRAP_SERVER_ID = 555;
     private static final int SERVER_ID = 123;
 
@@ -44,11 +44,11 @@ public class BootstrapServerTest {
             ExampleMqttInstanceProxy exampleInstance = exampleInstance();
 
             BootstrapSequence bootstrapSequence = BootstrapSequence.sequenceFor(CLIENT_NAME)
-                    .deleteAll()
+//                    .deleteAll()
                     .writeObject(securityObject())
                     .writeInstance(serverInstance())
                     .writeInstance(bootstrapServerInstance())
-                    .writeInstance(exampleInstance)
+//                    .writeInstance(exampleInstance)
                     .finish();
             // TODO bootstrap write resource
 
