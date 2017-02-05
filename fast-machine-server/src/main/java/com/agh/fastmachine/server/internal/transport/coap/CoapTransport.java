@@ -1,5 +1,7 @@
 package com.agh.fastmachine.server.internal.transport.coap;
 
+import com.agh.fastmachine.server.api.ClientProxy;
+import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.parser.RegistrationInfoParser;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
 import com.agh.fastmachine.server.internal.transport.LWM2M;
@@ -51,8 +53,8 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
         coapServer.stop();
     }
 
-    @Override
-    protected void doSendRequest(Lwm2mCoapRequest request) {
+    @Override // TODO TIMEOUT
+    protected void doSendRequest(ClientProxyImpl client, Lwm2mCoapRequest request) throws Exception {
         CoapClient coapClient = new CoapClient(request.getCoapPath());
         coapClient.setEndpoint(endpoint);
         coapClient.advanced(handler, request.toCoapRequest());

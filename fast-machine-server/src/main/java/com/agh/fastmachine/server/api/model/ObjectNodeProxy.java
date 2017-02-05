@@ -3,12 +3,13 @@ package com.agh.fastmachine.server.api.model;
 import com.agh.fastmachine.core.api.model.Attributes;
 import com.agh.fastmachine.core.internal.model.ObjectNodeModel;
 import com.agh.fastmachine.server.api.ClientProxy;
+import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.transport.LWM2M;
 import com.agh.fastmachine.server.internal.transport.Transport;
 
 public abstract class ObjectNodeProxy<I extends ObjectNodeProxy.Internal> implements ObjectNodeModel {
     protected Transport transport;
-    protected ClientProxy clientProxy;
+    protected ClientProxyImpl clientProxy;
     protected Attributes attributes;
     protected I internal;
     protected int id;
@@ -75,7 +76,7 @@ public abstract class ObjectNodeProxy<I extends ObjectNodeProxy.Internal> implem
         }
 
         public void setClientProxy(ClientProxy clientProxy) {
-            ObjectNodeProxy.this.clientProxy = clientProxy;
+            ObjectNodeProxy.this.clientProxy = (ClientProxyImpl) clientProxy;
         }
     }
 

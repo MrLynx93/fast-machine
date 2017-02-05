@@ -48,6 +48,11 @@ public class Lwm2mMqttRequest extends Lwm2mRequest {
         return topic.getOperation();
     }
 
+    @Override
+    public LWM2M.Path getPath() {
+        return topic.getPath();
+    }
+
     public MqttMessage toMqttMessage() {
         return new MqttMessage(toBytes());
     }

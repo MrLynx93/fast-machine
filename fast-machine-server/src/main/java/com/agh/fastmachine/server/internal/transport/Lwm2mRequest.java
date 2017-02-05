@@ -14,6 +14,7 @@ public abstract class Lwm2mRequest {
 
     public abstract String getToken();
     public abstract LWM2M.Operation getOperation();
+    public abstract LWM2M.Path getPath();
 
     public String getPayloadText() {
         if (contentType != PLAIN_TEXT) {

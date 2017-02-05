@@ -34,6 +34,7 @@ public class RegistrationService {
 
     public void deregisterClientProxy(ClientProxyImpl clientProxy) {
         String clientEndpointName = clientProxy.getClientEndpointName();
+        clientProxy.stopKeepaliveThread();
         server.internal().getClientManager().removeClientForEndpointName(clientEndpointName);
     }
 
@@ -42,6 +43,7 @@ public class RegistrationService {
         registrationInfo.bindingMode = updatedInfo.bindingMode;
         registrationInfo.smsNumber = updatedInfo.smsNumber;
         registrationInfo.lifetime = updatedInfo.lifetime;
+        clientProxy.updateTimeout();
         clientProxy.setStatus(ClientProxyStatus.REGISTERED);
     }
 

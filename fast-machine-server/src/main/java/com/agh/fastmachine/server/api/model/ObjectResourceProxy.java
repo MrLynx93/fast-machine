@@ -68,7 +68,7 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.read(this);
+        transport.read(clientProxy, this);
     }
 
     public void write() {
@@ -76,7 +76,7 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
             throw new ObjectDeletedException();
         }
         if (isChanged) {
-            transport.write(this);
+            transport.write(clientProxy, this);
             isChanged = false;
         }
     }
@@ -85,32 +85,32 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.discover(this);
+        transport.discover(clientProxy, this);
     }
 
     public void writeAttributes() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.writeAttributes(this);
+        transport.writeAttributes(clientProxy, this);
     }
 
     public void execute(String arguments) {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.execute(this, arguments);
+        transport.execute(clientProxy, this, arguments);
     }
 
     public void observe(ObservationListener<ObjectResourceProxy<T>> listener) {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
-        transport.observe(this, listener);
+        transport.observe(clientProxy, this, listener);
     }
 
     public void cancelObservation() {
-        transport.cancelObserve(this);
+        transport.cancelObserve(clientProxy, this);
     }
 
     public boolean isChanged() {

@@ -74,7 +74,12 @@ public class BootstrapServer { // TODO wait for bootstrap request
             request.getTopic().setClientId(clientName);
 
             PendingRequest pendingRequest = sendRequest(request);
-            pendingRequest.waitForCompletion();
+            try {
+                pendingRequest.waitForCompletion();
+            } catch (Exception e) {
+                System.out.println("NIE UDALO SIE WYSLAC");
+            }
+
 
             if (bootstrapListener != null) {
                 if (request.getTopic().getOperation() == LWM2M.Operation.BS_WRITE) {

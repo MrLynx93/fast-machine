@@ -1,7 +1,9 @@
 package com.agh.fastmachine.server.internal.transport;
 
 import com.agh.fastmachine.server.api.listener.ObservationListener;
+import com.agh.fastmachine.server.internal.transport.stats.TimeoutException;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -36,18 +38,27 @@ public class PendingRequest {
         return request;
     }
 
-    public Lwm2mResponse waitForCompletion() {
+    public Lwm2mResponse waitForCompletion() throws TimeoutException {
+        return waitForCompletion(2, TimeUnit.SECONDS);
+    }
+
+    public Lwm2mResponse waitForCompletion(long timeout, TimeUnit unit) throws TimeoutException {
+        boolean success = true;
         try {
             lock.lock();
             while (responseCount == 0) {
-                condition.await();
+                success = condition.await(timeout, unit);
             }
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         } finally {
             lock.unlock();
         }
-        return response;
+
+        if (!success)
+            throw new TimeoutException();
+        else
+            return response;
     }
 
     public void complete(Lwm2mResponse response) {

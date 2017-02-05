@@ -52,7 +52,6 @@ abstract class BaseRegistrationListener extends RegistrationListener {
             registrationLock.lock();
             if (registrationListener != null) {
                 registrationListener.onDeregister(client);
-                registrationListener = null;
             }
 //            isRegisteredCondition.await();
         } finally {

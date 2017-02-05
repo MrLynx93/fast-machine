@@ -6,23 +6,23 @@ import com.agh.fastmachine.server.internal.service.BootstrapService;
 import com.agh.fastmachine.server.internal.service.RegistrationService;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationObjectInfo;
-import com.agh.fastmachine.server.internal.transport.LWM2M;
-import com.agh.fastmachine.server.internal.transport.Lwm2mRequest;
-import com.agh.fastmachine.server.internal.transport.Lwm2mResponse;
-import com.agh.fastmachine.server.internal.transport.Transport;
+import com.agh.fastmachine.server.internal.transport.*;
 import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttRegisterRequest;
 import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttRequest;
 import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttResponse;
 import com.agh.fastmachine.server.internal.transport.mqtt.message.MqttRequestBuilder;
+import com.agh.fastmachine.server.internal.transport.stats.Event;
 import org.eclipse.paho.client.mqttv3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest> {
-    private Map<String, ClientProxyImpl> registeredClients = new HashMap<>();
+    private static final Logger LOG = LoggerFactory.getLogger(MqttTransport.class);
+
     private MqttClient mqttClient;
     private RegistrationService registrationService;
     private ClientManager clientManager;
@@ -47,6 +47,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
             mqttClient.connect(options);
             mqttClient.setCallback(mqttCallback);
+            mqttClient.setTimeToWait(2000);
             mqttClient.subscribe("lynx/br/req/+/+/" + configuration.getServerId());
             mqttClient.subscribe("lynx/bw/res/+/+/" + configuration.getServerId() + "/#");
             mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerId());
@@ -85,21 +86,16 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
     }
 
     @Override
-    protected void doSendRequest(Lwm2mMqttRequest request) {
-        try {
-            mqttClient.publish("lynx/" + request.getTopic().toString(), request.toMqttMessage());
-            System.out.println("Sent  " + request.getTopic());
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+    protected void doSendRequest(ClientProxyImpl client, Lwm2mMqttRequest request) throws Exception {
+        mqttClient.publish("lynx/" + request.getTopic().toString(), request.toMqttMessage());
+        stats.addEvent(client, Event.downlinkRequestSendSuccess(request.getOperation()));
+        LOG.info("Sent request {}", request.getTopic());
     }
 
-    private void doSendResponse(Lwm2mMqttResponse response) {
-        try {
-            mqttClient.publish("lynx/" + response.getTopic().toString(), response.toMqttMessage());
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+    private void doSendResponse(ClientProxyImpl client, Lwm2mMqttResponse response) throws Exception {
+        mqttClient.publish("lynx/" + response.getTopic().toString(), response.toMqttMessage());
+        stats.addEvent(client, Event.uplinkResponseSendSuccess(response.getTopic().getOperation()));
+        LOG.info("Sent response {}", response.getTopic());
     }
 
     @Override
@@ -129,21 +125,28 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
                         handleDeregister(Lwm2mMqttRequest.fromMqtt(message, topic));
                         break;
                 }
+                // TODO count deregister
+                ClientProxyImpl client = registeredClients.get(topic.getClientId());
+                if (client != null) {
+                    stats.addEvent(client, Event.uplinkRequestReceiveSuccess(topic.getOperation()));
+                }
             }
-
             if (topic.getType().equals("res")) {
-                Lwm2mResponse response = Lwm2mMqttResponse.fromMqtt(message, topic);
-                handleResponse(response);
+                handleResponse(Lwm2mMqttResponse.fromMqtt(message, topic));
+
+                ClientProxyImpl client = registeredClients.get(topic.getClientId());
+                stats.addEvent(client, Event.downlinkResponseReceiveSuccess(topic.getOperation()));
             }
         }
 
         @Override
         public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
-
+            // TODO maybe here?????
         }
 
         @Override
         public void connectionLost(Throwable throwable) {
+            System.out.println("Connection lost.");
             throw new RuntimeException(throwable);
         }
 
@@ -162,8 +165,13 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
             registeredClients.put(request.getTopic().getClientId(), clientProxy);
 
             Lwm2mMqttResponse response = createRegisterResponse(request);
-            doSendResponse(response);
-            registrationService.registerFinished(clientProxy);
+            try {
+                doSendResponse(clientProxy, response);
+                registrationService.registerFinished(clientProxy);
+            } catch (Exception e) {
+                stats.addEvent(clientProxy, Event.uplinkResponseSendTimeout(response.getTopic().getOperation()));
+                LOG.error("Couldn't send response to {}", request);
+            }
         }
     }
 
@@ -174,8 +182,13 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
         registrationService.handleUpdateForClientProxy(clientProxy, updatedInfo);
 
         Lwm2mMqttResponse response = createUpdateResponse(request);
-        doSendResponse(response);
-        registrationService.updateFinished(clientProxy);
+        try {
+            doSendResponse(clientProxy, response);
+            registrationService.updateFinished(clientProxy);
+        } catch (Exception e) {
+            stats.addEvent(clientProxy, Event.uplinkResponseSendTimeout(response.getTopic().getOperation()));
+            LOG.error("Couldn't send response to {}", request);
+        }
     }
 
     private void handleDeregister(Lwm2mMqttRequest request) {
@@ -185,8 +198,13 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
         clientProxy.setRegistrationInfo(null);
 
         Lwm2mMqttResponse response = createDeregisterResponse(request);
-        doSendResponse(response);
-        registrationService.deregisterFinished(clientProxy);
+        try {
+            doSendResponse(clientProxy, response);
+            registrationService.deregisterFinished(clientProxy);
+        } catch (Exception e) {
+            stats.addEvent(clientProxy, Event.uplinkResponseSendSuccess(response.getTopic().getOperation()));
+            LOG.error("Couldn't send response to {}", request);
+        }
     }
 
     public RegistrationInfo parseRegistrationInfo(Lwm2mMqttRegisterRequest request) {
@@ -249,7 +267,6 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
                 LWM2M.ContentType.NO_FORMAT,
                 LWM2M.ResponseCode.DELETED);
     }
-
 
 
     private static final Pattern PATTERN = Pattern.compile("<(?<url>.*?)/(?<object>\\d+)(?:/(?<instance>\\d+)/?)?>");

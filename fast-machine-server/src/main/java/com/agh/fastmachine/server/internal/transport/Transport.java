@@ -9,31 +9,44 @@ import com.agh.fastmachine.server.api.listener.ObservationListener;
 import com.agh.fastmachine.server.api.model.*;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.parser.ServerReadParser;
+import com.agh.fastmachine.server.internal.transport.stats.Event;
+import com.agh.fastmachine.server.internal.transport.stats.Stats;
+import com.agh.fastmachine.server.internal.transport.stats.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class Transport<T extends TransportConfiguration, REQ extends Lwm2mRequest> {
     private static final Logger LOG = LoggerFactory.getLogger(Transport.class);
-    protected final Map<String, PendingRequest> pendingRequests = new ConcurrentHashMap<>();
-    protected final Map<String, ObserveHandler> observeHandlers = new ConcurrentHashMap<>();
+    protected Map<String, ClientProxyImpl> registeredClients = new HashMap<>();
+
+    private final Map<String, PendingRequest> pendingRequests = new ConcurrentHashMap<>();
+    private final Map<String, ObserveHandler> observeHandlers = new ConcurrentHashMap<>();
     private final WriteAttributesParser writeAttributesParser = new WriteAttributesParser();
     private final ReadParser readParser = new ServerReadParser();
     protected RequestBuilder<REQ> requestBuilder;
+    protected Stats stats = new Stats();
     protected T configuration;
 
     public abstract void start(T configuration);
+
     public abstract void stop();
 
-    protected abstract void doSendRequest(REQ request);
+    protected abstract void doSendRequest(ClientProxyImpl client, REQ request) throws Exception;
 
-    public PendingRequest sendRequest(REQ request) {
+    public PendingRequest sendRequest(ClientProxyImpl client, REQ request) {
         PendingRequest pendingRequest = new PendingRequest(request);
         pendingRequests.put(request.getToken(), pendingRequest);
-        doSendRequest(request);
+        try {
+            doSendRequest(client, request);
+        } catch (Exception e) {
+            stats.addEvent(client, Event.downlinkRequestSendTimeout(request.getOperation()));
+            LOG.error("Failed to send request {}", request);
+        }
         return pendingRequest;
     }
 
@@ -63,212 +76,278 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
 
     /********************  CREATE  ********************/
 
-    public void create(ObjectInstanceProxy instance) {
+    public void create(ClientProxyImpl client, ObjectInstanceProxy instance) {
         REQ request = requestBuilder.buildCreateRequest(instance);
-        PendingRequest pendingRequest = sendRequest(request);
-
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            instance.internal().setId(response.getCreatedInstanceId());
-            connectToRemote(instance);
-            LOG.debug("Created object instance: {}", instance.getPath());
-        }
+        doCreate(client, instance, request);
     }
 
-    public void create(ObjectInstanceProxy instance, int instanceId) {
+    public void create(ClientProxyImpl client, ObjectInstanceProxy instance, int instanceId) {
         REQ request = requestBuilder.buildCreateRequest(instance, instanceId);
-        PendingRequest pendingRequest = sendRequest(request);
+        doCreate(client, instance, request);
+    }
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            instance.internal().setId(response.getCreatedInstanceId());
-            connectToRemote(instance);
-            LOG.debug("Created object instance: {}", instance.getPath());
+    private void doCreate(ClientProxyImpl client, ObjectInstanceProxy instance, REQ request) {
+        PendingRequest pendingRequest = sendRequest(client, request);
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                instance.internal().setId(response.getCreatedInstanceId());
+                connectToRemote(instance);
+                LOG.debug("Created object instance: {}", instance.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
     /********************  DELETE  ********************/
 
-    public void delete(ObjectInstanceProxy instance) {
+    public void delete(ClientProxyImpl client, ObjectInstanceProxy instance) {
         REQ request = requestBuilder.buildDeleteRequest(instance);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            LOG.debug("Deleted instance: {}", instance.getPath());
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                LOG.debug("Deleted instance: {}", instance.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
     /********************  DISCOVER  ********************/
 
-    public void discover(ObjectBaseProxy<?> object) {
+    public void discover(ClientProxyImpl client, ObjectBaseProxy<?> object) {
         REQ request = requestBuilder.buildDiscoverRequest(object);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            Attributes attributes = writeAttributesParser.parseWriteAttributes(response.getPayloadText());
-            if (attributes != null) {
-                object.internal().updateAttributes(attributes);
-            }
-            List<Integer> supportedResources = writeAttributesParser.parseSupportedResources(response.getPayloadText());
-            for (ObjectInstanceProxy instance : object.getObjectInstances().values()) {
-                for (Map.Entry<Integer, ? extends ObjectResourceProxy<?>> resourceEntry : instance.getResources().entrySet()) {
-                    ObjectResourceProxy<?> resource = resourceEntry.getValue();
-                    resource.internal().setSupported(supportedResources.contains(resourceEntry.getKey()));
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                Attributes attributes = writeAttributesParser.parseWriteAttributes(response.getPayloadText());
+                if (attributes != null) {
+                    object.internal().updateAttributes(attributes);
                 }
+                List<Integer> supportedResources = writeAttributesParser.parseSupportedResources(response.getPayloadText());
+                for (ObjectInstanceProxy instance : object.getObjectInstances().values()) {
+                    for (Map.Entry<Integer, ? extends ObjectResourceProxy<?>> resourceEntry : instance.getResources().entrySet()) {
+                        ObjectResourceProxy<?> resource = resourceEntry.getValue();
+                        resource.internal().setSupported(supportedResources.contains(resourceEntry.getKey()));
+                    }
+                }
+                LOG.debug("Discovered object: {}", object.getPath());
+                LOG.debug("Discover message: {}", response.getPayloadText());
             }
-            LOG.debug("Discovered object: {}", object.getPath());
-            LOG.debug("Discover message: {}", response.getPayloadText());
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
-    public void discover(ObjectInstanceProxy instance) {
+    public void discover(ClientProxyImpl client, ObjectInstanceProxy instance) {
         REQ request = requestBuilder.buildDiscoverRequest(instance);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            Attributes attributes = writeAttributesParser.parseWriteAttributes(response.getPayloadText());
-            if (attributes != null) {
-                instance.internal().updateAttributes(attributes);
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                Attributes attributes = writeAttributesParser.parseWriteAttributes(response.getPayloadText());
+                if (attributes != null) {
+                    instance.internal().updateAttributes(attributes);
+                }
+                LOG.debug("Discovered instance: {}", instance.getPath());
+                LOG.debug("Discover message: {}", response.getPayloadText());
             }
-            LOG.debug("Discovered instance: {}", instance.getPath());
-            LOG.debug("Discover message: {}", response.getPayloadText());
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
-    public void discover(ObjectResourceProxy<?> resource) {
+    public void discover(ClientProxyImpl client, ObjectResourceProxy<?> resource) {
         REQ request = requestBuilder.buildDiscoverRequest(resource);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            Attributes attributes = writeAttributesParser.parseResourceWriteAttributes(response.getPayloadText(), resource);
-            if (attributes != null) {
-                resource.internal().updateAttributes(attributes);
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                Attributes attributes = writeAttributesParser.parseResourceWriteAttributes(response.getPayloadText(), resource);
+                if (attributes != null) {
+                    resource.internal().updateAttributes(attributes);
+                }
+                LOG.debug("Discovered resource: {}", resource.getPath());
+                LOG.debug("Discover message: {}", response.getPayloadText());
             }
-            LOG.debug("Discovered resource: {}", resource.getPath());
-            LOG.debug("Discover message: {}", response.getPayloadText());
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
     /********************  EXECUTE  ********************/
 
-    public void execute(ObjectResourceProxy<?> resource, String arguments) {
+    public void execute(ClientProxyImpl client, ObjectResourceProxy<?> resource, String arguments) {
         REQ request = requestBuilder.buildExecuteRequest(resource, arguments);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            LOG.debug("Executed resource: {}", resource.getPath());
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                LOG.debug("Executed resource: {}", resource.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
     /********************  OBSERVE  ********************/
 
-    public void observe(ObjectNodeProxy<?> node, ObservationListener<?> listener) {
+    public void observe(ClientProxyImpl client, ObjectNodeProxy<?> node, ObservationListener<?> listener) {
         REQ request = requestBuilder.buildObserveRequest(node);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            startObserve(request.getToken(), new ObserveHandler(node, listener));
-            node.setObserveToken(request.getToken());
-            LOG.debug("Started observing: {}", node.getPath());
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                startObserve(request.getToken(), new ObserveHandler(node, listener));
+                node.setObserveToken(request.getToken());
+                LOG.debug("Started observing: {}", node.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
-    public void cancelObserve(ObjectNodeProxy<?> node) {
+    public void cancelObserve(ClientProxyImpl client, ObjectNodeProxy<?> node) {
         REQ request = requestBuilder.buildCancelObserveRequest(node);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            stopObserve(node.getObserveToken());
-            node.setObserveToken(null);
-            LOG.debug("Stopped observing: {}", node.getPath());
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                stopObserve(node.getObserveToken());
+                node.setObserveToken(null);
+                LOG.debug("Stopped observing: {}", node.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
     /********************  READ  ********************/
 
-    public void read(ObjectBaseProxy<?> object) {
+    public void read(ClientProxyImpl client, ObjectBaseProxy<?> object) {
         REQ request = requestBuilder.buildReadRequest(object);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            ObjectBaseProxy newValue = readParser.deserialize(object, response.getPayload());
-            object.internal().update(newValue);
-            LOG.debug("Read object: {}", object.getPath());
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                ObjectBaseProxy newValue = readParser.deserialize(object, response.getPayload());
+                object.internal().update(newValue);
+                LOG.debug("Read object: {}", object.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
-    public void read(ObjectInstanceProxy instance) {
+    public void read(ClientProxyImpl client, ObjectInstanceProxy instance) {
         REQ request = requestBuilder.buildReadRequest(instance);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            ObjectInstanceProxy newValue = readParser.deserialize(instance, response.getPayload());
-            instance.internal().update(newValue);
-            LOG.debug("Read instance: {}", instance.getPath());
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                ObjectInstanceProxy newValue = readParser.deserialize(instance, response.getPayload());
+                instance.internal().update(newValue);
+                LOG.debug("Read instance: {}", instance.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
     @SuppressWarnings("unchecked")
-    public void read(ObjectResourceProxy<?> resource) {
+    public void read(ClientProxyImpl client, ObjectResourceProxy<?> resource) {
         REQ request = requestBuilder.buildReadRequest(resource);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) { // TODO fix client, then operate basing on response.getContentType()
-            if (OpaqueResourceValue.class.equals(resource.getValueType())) {
-                OpaqueResourceValue newValue = new OpaqueResourceValue(response.getPayload());
-                resource.internal().update(newValue);
-            } else if (resource instanceof ObjectMultipleResourceProxy) {
-                ObjectMultipleResourceProxy newValue = (ObjectMultipleResourceProxy<?>) readParser.deserialize(resource, response.getPayload());
-                resource.internal().update(newValue);
-            } else {
-                ResourceValue<?> newValue = readParser.deserialize(resource.getValue(), response.getPayload());
-                resource.internal().update(newValue);
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) { // TODO fix client, then operate basing on response.getContentType()
+                if (OpaqueResourceValue.class.equals(resource.getValueType())) {
+                    OpaqueResourceValue newValue = new OpaqueResourceValue(response.getPayload());
+                    resource.internal().update(newValue);
+                } else if (resource instanceof ObjectMultipleResourceProxy) {
+                    ObjectMultipleResourceProxy newValue = (ObjectMultipleResourceProxy<?>) readParser.deserialize(resource, response.getPayload());
+                    resource.internal().update(newValue);
+                } else {
+                    ResourceValue<?> newValue = readParser.deserialize(resource.getValue(), response.getPayload());
+                    resource.internal().update(newValue);
+                }
+                LOG.debug("Read resource: {}", resource.getPath());
             }
-            LOG.debug("Read resource: {}", resource.getPath());
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
     /********************  WRITE ATTRIBUTES  ********************/
 
-    public void writeAttributes(ObjectNodeProxy<?> node) {
+    public void writeAttributes(ClientProxyImpl client, ObjectNodeProxy<?> node) {
         REQ request = requestBuilder.buildWriteAttributesRequest(node);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            LOG.debug("Write attributes: {}", node.getPath());
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                LOG.debug("Write attributes: {}", node.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
     /********************  WRITE  ********************/
 
-    public void write(ObjectInstanceProxy instance) {
+    public void write(ClientProxyImpl client, ObjectInstanceProxy instance) {
         REQ request = requestBuilder.buildWriteRequest(instance);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            LOG.debug("Write instance: {}", instance.getPath());
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                LOG.debug("Write instance: {}", instance.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 
-    public void write(ObjectResourceProxy resource) {
+    public void write(ClientProxyImpl client, ObjectResourceProxy resource) {
         REQ request = requestBuilder.buildWriteRequest(resource);
-        PendingRequest pendingRequest = sendRequest(request);
+        PendingRequest pendingRequest = sendRequest(client, request);
 
-        Lwm2mResponse response = pendingRequest.waitForCompletion();
-        if (response.isSuccess()) {
-            LOG.debug("Write resource: {}", resource.getPath());
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                LOG.debug("Write resource: {}", resource.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
         }
     }
 

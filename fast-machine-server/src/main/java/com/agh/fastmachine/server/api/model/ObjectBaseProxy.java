@@ -43,15 +43,15 @@ public class ObjectBaseProxy<T extends ObjectInstanceProxy> extends ObjectNodePr
     }
 
     public void read() {
-        transport.read(this);
+        transport.read(clientProxy, this);
     }
 
     public void discover() {
-        transport.discover(this);
+        transport.discover(clientProxy, this);
     }
 
     public void writeAttributes() {
-        transport.writeAttributes(this);
+        transport.writeAttributes(clientProxy, this);
     }
 
     @Override
@@ -60,11 +60,11 @@ public class ObjectBaseProxy<T extends ObjectInstanceProxy> extends ObjectNodePr
     }
 
     public void observe(ObservationListener<ObjectBaseProxy<T>> listener) {
-        transport.observe(this, listener);
+        transport.observe(clientProxy, this, listener);
     }
 
     public void cancelObservation() {
-        transport.cancelObserve(this);
+        transport.cancelObserve(clientProxy, this);
     }
 
     public boolean isChanged() {

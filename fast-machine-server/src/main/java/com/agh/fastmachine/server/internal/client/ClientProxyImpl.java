@@ -11,12 +11,17 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ClientProxyImpl extends BaseRegistrationListener implements ClientProxy {
     private static final Logger LOG = LoggerFactory.getLogger(ClientProxyImpl.class);
 
     private Transport transport;
     private ObjectTree objectTree;
+    private ClientManager clientManager;
     private ClientProxyStatus status;
     private String endpointClientName;
     private String registrationEndpoint;
@@ -27,25 +32,30 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
     private RegistrationInfo registrationInfo;
     private Date lastUpdateTime;
     private Date registerTime;
+    private KeepaliveThread keepaliveThread;
+
 
     public ClientProxyImpl(Server server, String endpointClientName) {
         this.server = server;
+        this.clientManager = server.internal().getClientManager();
         this.endpointClientName = endpointClientName;
         this.status = ClientProxyStatus.CREATED;
         this.transport = server.internal().getTransportLayer();
+        this.keepaliveThread = new KeepaliveThread();
+        this.keepaliveThread.start();
     }
 
     @Override
     public <T extends ObjectInstanceProxy> void create(T patternInstance) {
         patternInstance.internal().setClientProxy(this);
-        transport.create(patternInstance);
+        transport.create(this, patternInstance);
     }
 
     @Override
     public <T extends ObjectInstanceProxy> void create(T patternInstance, int id) {
         patternInstance.internal().setClientProxy(this);
         patternInstance.internal().setId(id);
-        transport.create(patternInstance, id);
+        transport.create(this, patternInstance, id);
     }
 
     @Override
@@ -142,5 +152,46 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
 
     public RegistrationInfo getRegistrationInfo() {
         return registrationInfo;
+    }
+
+
+    public void stopKeepaliveThread() {
+        keepaliveThread.interrupt();
+    }
+
+    public void updateTimeout() {
+        keepaliveThread.lock.lock();
+        keepaliveThread.condition.signal();
+        keepaliveThread.lock.unlock();
+    }
+
+    private class KeepaliveThread extends Thread {
+        private Lock lock = new ReentrantLock();
+        private Condition condition = lock.newCondition();
+
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    lock.lock();
+                    if (!condition.await(getTimeout(), TimeUnit.MILLISECONDS)) {
+                        // If timeout (no update came)
+                        LOG.info("Didn't receive update. Removing client account");
+                        clientManager.removeClientForEndpointName(endpointClientName);
+                        break;
+                    }
+                } catch (InterruptedException e) {
+                    LOG.info("Interrupted client thread. Probably deregistered");
+                    break;
+                } finally {
+                    lock.unlock();
+                }
+            }
+        }
+
+        // TODO get lifetime from object model
+        private long getTimeout() {
+            return 100000;
+        }
     }
 }

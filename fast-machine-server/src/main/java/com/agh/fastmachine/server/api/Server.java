@@ -9,6 +9,7 @@ import com.agh.fastmachine.server.internal.transport.coap.CoapTransport;
 import com.agh.fastmachine.server.internal.transport.Transport;
 import com.agh.fastmachine.server.internal.transport.coap.CoapConfiguration;
 import com.agh.fastmachine.server.internal.transport.TransportConfiguration;
+import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +25,18 @@ public class Server {
     private Transport transport;
     private ServerConfiguration configuration;
     private Internal internal = new Internal();
+    private String name;
 
     public void start() {
         start(null);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void start(TransportConfiguration transportConfiguration) {
@@ -38,6 +48,7 @@ public class Server {
             transportConfiguration = createCoapTransportConfiguration();
         } else {
             transport = new MqttTransport();
+            ((MqttConfiguration)transportConfiguration).setServerId(name);
             transportConfiguration.setServer(this);
         }
         transport.start(transportConfiguration);
