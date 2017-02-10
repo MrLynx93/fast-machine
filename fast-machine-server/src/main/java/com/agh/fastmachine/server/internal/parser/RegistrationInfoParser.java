@@ -34,7 +34,7 @@ public class RegistrationInfoParser {
             if (matcher.find()) {
                 String url = matcher.group("url");
                 Integer objectId = Integer.valueOf(matcher.group("object"));
-                Integer instanceId = Integer.valueOf(matcher.group("instance"));
+                Integer instanceId = matcher.group("instance") == null ? null : Integer.valueOf(matcher.group("instance"));
                 registrationInfo.objects.add(new RegistrationObjectInfo(url, objectId, instanceId));
             }
         }

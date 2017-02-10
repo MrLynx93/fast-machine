@@ -45,6 +45,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
             doSendRequest(client, request);
         } catch (Exception e) {
             stats.addEvent(client, Event.downlinkRequestSendTimeout(request.getOperation()));
+            e.printStackTrace();
             LOG.error("Failed to send request {}", request);
         }
         return pendingRequest;

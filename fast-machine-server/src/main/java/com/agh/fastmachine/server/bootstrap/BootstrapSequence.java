@@ -19,15 +19,10 @@ public class BootstrapSequence {
     private static final int TOKEN_LENGTH = 8;
 
     private List<BootstrapOperation> operations = new LinkedList<>();
-    private int serverId;
-    private String clientId;
+    private String serverId;
 
-    private BootstrapSequence(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public static BootstrapSequence sequenceFor(String clientId) {
-        return new BootstrapSequence(clientId);
+    public static BootstrapSequence create() {
+        return new BootstrapSequence();
     }
 
     /******** Operations *********/
@@ -72,7 +67,7 @@ public class BootstrapSequence {
         return this;
     }
 
-    public void setServerId(int serverId) {
+    public void setServerId(String serverId) {
         this.serverId = serverId;
     }
 
@@ -94,8 +89,8 @@ public class BootstrapSequence {
                     LWM2M.Operation.BS_DELETE,
                     "req",
                     generateToken(),
-                    BootstrapSequence.this.clientId,
-                    String.valueOf(BootstrapSequence.this.serverId),
+                    null,
+                    BootstrapSequence.this.serverId,
                     path
             );
             return new Lwm2mMqttRequest(topic, LWM2M.ContentType.NO_FORMAT);
@@ -115,8 +110,8 @@ public class BootstrapSequence {
                     LWM2M.Operation.BS_WRITE,
                     "req",
                     generateToken(),
-                    BootstrapSequence.this.clientId,
-                    String.valueOf(BootstrapSequence.this.serverId),
+                    null,
+                    BootstrapSequence.this.serverId,
                     node.getPath()
             );
             return new Lwm2mMqttRequest(topic, LWM2M.ContentType.TLV, WriteParser.serialize(node));
@@ -131,8 +126,8 @@ public class BootstrapSequence {
                     LWM2M.Operation.BS_FINISH,
                     "req",
                     generateToken(),
-                    BootstrapSequence.this.clientId,
-                    String.valueOf(BootstrapSequence.this.serverId),
+                    null,
+                    BootstrapSequence.this.serverId,
                     LWM2M.Path.empty()
             );
             return new Lwm2mMqttRequest(topic, LWM2M.ContentType.NO_FORMAT);

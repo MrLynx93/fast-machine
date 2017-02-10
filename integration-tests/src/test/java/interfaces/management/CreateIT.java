@@ -8,6 +8,7 @@ import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.api.model.ObjectTree;
 import org.junit.Test;
+import performance.model.TestInstanceProxy;
 import util.TestUtil;
 import util.model.ExampleObjectInstanceProxy;
 
@@ -15,11 +16,36 @@ import static org.fest.assertions.Assertions.assertThat;
 
 // TODO now create works differently
 public class CreateIT {
-    private static final String ENDPOINT_CLIENT_NAME = "132:123:123";
+    private static final String ENDPOINT_CLIENT_NAME = "client_1242";
     private ObjectBaseProxy<ExampleObjectInstanceProxy> exampleObjectProxy;
+    private static ObjectBaseProxy<ExampleObjectInstanceProxy> exampleObjectProxy2;
+
+
+    public static void main(String[] args) {
+        Server server = TestUtil.startExampleServer();
+        Client client = TestUtil.startExampleClient(ENDPOINT_CLIENT_NAME);
+        ClientProxy clientProxy = server.getClientForEndpointName(ENDPOINT_CLIENT_NAME);
+
+        // Check if was not created
+//        ObjectTree objectTree = clientProxy.getObjectTree();
+//        exampleObjectProxy2 = objectTree.getObjectForType(ExampleObjectInstanceProxy.class);
+
+        String a = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
+        // Create new instance with ID 100
+        TestInstanceProxy newInstance = new TestInstanceProxy();
+        newInstance.clientId.setValue(new StringResourceValue("kurwa"));
+        newInstance.serverId.setValue(new StringResourceValue("gowno"));
+        newInstance.payload.setValue(new StringResourceValue(a + a + a + a + a + a + a + a + a +a + a + a + a + a + a + a + a + a +a + a + a + a + a + a + a + a + a + a + a + a + a + a));
+        clientProxy.create(newInstance, 100);
+
+        TestUtil.waitSeconds(5);
+//        assertThat(newInstance).isNotNull();
+//        assertThat(newInstance.getId()).isEqualTo(100); // next ID after 4
+//        assertThat(objectTree.getObjectForType(ExampleObjectInstanceProxy.class).getInstance(100)).isSameAs(newInstance);
+    }
 
     @Test
-    public void shouldCreateObjectInstanceWithKnownId() throws Exception {
+    public void shouldCreateObjectInstanceWithKnownId() {
         Server server = TestUtil.startExampleServer();
         Client client = TestUtil.startExampleClient(ENDPOINT_CLIENT_NAME);
         ClientProxy clientProxy = server.getClientForEndpointName(ENDPOINT_CLIENT_NAME);
@@ -37,6 +63,7 @@ public class CreateIT {
         newInstance.stringResource.setValue(new StringResourceValue("Hello, new instance!"));
         clientProxy.create(newInstance, 100);
 
+        TestUtil.waitSeconds(5);
         assertThat(newInstance).isNotNull();
         assertThat(newInstance.getId()).isEqualTo(100); // next ID after 4
         assertThat(objectTree.getObjectForType(ExampleObjectInstanceProxy.class).getInstance(100)).isSameAs(newInstance);

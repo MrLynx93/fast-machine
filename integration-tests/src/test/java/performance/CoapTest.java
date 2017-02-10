@@ -1,30 +1,39 @@
 package performance;
 
+import com.agh.fastmachine.client.api.Client;
+import com.agh.fastmachine.client.api.CoapClientConf;
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.ServerConfiguration;
 import com.agh.fastmachine.server.internal.transport.coap.CoapConfiguration;
+import performance.model.TestInstanceProxy;
 import util.model.PingInstanceProxy;
 
-public class CoapTest extends BaseTest {
+import java.util.List;
+
+public class CoapTest extends AbstractCoapTest {
 
     public static void main(String[] args) throws InterruptedException {
-        CoapTest coapTest = new CoapTest();
-        coapTest.doTest();
+        new CoapTest().test();
     }
 
-    @Override
-    public Server configureServer(int number) { // todo name
-        Server server = new Server();
+    Client configureClient(int i, List<Server> servers) {
+        CoapClientConf configuration = new CoapClientConf();
+        configuration.setPort(29000 + i);
+        configuration.setDtls(false);
+        return new Client("client_" + (29000 + i), factoryBootstrap(i, servers), configuration);
+    }
 
+    Server configureServer(int number) {
         ServerConfiguration configuration = new ServerConfiguration();
+        configuration.setTransport(ServerConfiguration.TRASPORT_COAP);
+        configuration.setName("server_" + (19000 + number));
         configuration.addObjectSupport(TestInstanceProxy.class);
         configuration.addObjectSupport(PingInstanceProxy.class);
-        server.setConfiguration(configuration);
 
         CoapConfiguration transportConfiguration = new CoapConfiguration();
-        transportConfiguration.setPort(1900 + number);
-
-        configuration.setTransport(ServerConfiguration.TRASPORT_COAP);
-        return server;
+        transportConfiguration.setPort(19000 + number);
+        transportConfiguration.setDtls(false);
+        return new Server(configuration, transportConfiguration);
     }
+
 }

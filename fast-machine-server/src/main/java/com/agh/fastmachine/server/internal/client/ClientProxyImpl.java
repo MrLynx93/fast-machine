@@ -22,7 +22,7 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
     private Transport transport;
     private ObjectTree objectTree;
     private ClientManager clientManager;
-    private ClientProxyStatus status;
+    private volatile ClientProxyStatus status;
     private String endpointClientName;
     private String registrationEndpoint;
     private String clientId;

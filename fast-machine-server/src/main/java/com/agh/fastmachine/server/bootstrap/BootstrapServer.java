@@ -10,37 +10,58 @@ import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttReque
 import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttResponse;
 import org.eclipse.paho.client.mqttv3.*;
 
-import javax.xml.ws.Response;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class BootstrapServer { // TODO wait for bootstrap request
+// TODO wait for bootstrap request
+public class BootstrapServer {
     private ExecutorService executor = Executors.newFixedThreadPool(2);
     private Map<String, PendingRequest> pendingRequests = new ConcurrentHashMap<>();
-    private Map<String, BootstrapSequence> sequenceForClient = new HashMap<>();
+    private Map<String, BootstrapSequence> sequenceForPattern = new LinkedHashMap<>();
     private MqttClient mqttClient;
+    private final MqttConfiguration mqttConfiguration;
     private BootstrapListener bootstrapListener;
-    private String serverName;
-    private int serverId;
+    private String name;
 
-    public BootstrapServer(String serverName, int serverId) {
-        this.serverName = serverName;
-        this.serverId = serverId;
+    public BootstrapServer(MqttConfiguration mqttConfiguration) {
+        this.name = mqttConfiguration.getServerName();
+        this.mqttConfiguration = mqttConfiguration;
     }
 
-    public void start(MqttConfiguration configuration) {
+    public void start() {
         try {
-            mqttClient = new MqttClient(configuration.getBrokerAddress(), serverName);
-
             MqttConnectOptions options = new MqttConnectOptions();
             options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
             options.setCleanSession(true);
 
-            mqttClient.connect();
+            if (mqttConfiguration.isDtls()) {
+                mqttClient = new MqttClient("ssl://" + mqttConfiguration.getBrokerAddress(), name);
+                SSLContext sslContext = SSLContext.getInstance("SSL");
+                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+
+                KeyStore keyStore = KeyStore.getInstance("JKS");
+                InputStream inKeyStore = getClass().getClassLoader().getResourceAsStream(mqttConfiguration.getKeyStoreLocation());
+                keyStore.load(inKeyStore, mqttConfiguration.getKeyStorePassword().toCharArray());
+
+                trustManagerFactory.init(keyStore);
+                sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
+                options.setSocketFactory(sslContext.getSocketFactory());
+            } else {
+                mqttClient = new MqttClient("tcp://" + mqttConfiguration.getBrokerAddress(), name);
+            }
+
+            mqttClient.connect(options);
             mqttClient.setCallback(mqttCallback);
             mqttClient.subscribe("lynx/clients/+");
             mqttClient.subscribe("lynx/br/res/#");
@@ -48,26 +69,33 @@ public class BootstrapServer { // TODO wait for bootstrap request
             mqttClient.subscribe("lynx/bw/res/#");
             mqttClient.subscribe("lynx/bf/res/#");
 
-        } catch (MqttException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public int getServerId() {
-        return serverId;
-    }
-
-    public void setSequenceForClient(String clientId, BootstrapSequence sequence) {
-        sequence.setServerId(this.serverId);
-        sequenceForClient.put(clientId, sequence);
+    public void setSequenceForPattern(String pattern, BootstrapSequence sequence) {
+        sequence.setServerId(this.name);
+        sequenceForPattern.put(pattern, sequence);
     }
 
     private void bootstrapClient(String clientName) {
-        System.out.println("Bootstrapping client " + clientName);
-        BootstrapSequence sequence = sequenceForClient.get(clientName);
-        if (sequence == null) {
-            sequence = sequenceForClient.get("*");
+        boolean matchesAny = false;
+        for (String patternString : sequenceForPattern.keySet()) {
+            Matcher matcher = Pattern.compile(patternString).matcher(clientName);
+            if (matcher.matches()) {
+                doBootstrap(clientName, sequenceForPattern.get(patternString));
+                matchesAny = true;
+                break;
+            }
         }
+        if (!matchesAny) {
+            System.out.println("[Error] Didn't find a matching sequence for client " + clientName);
+        }
+    }
+
+    private void doBootstrap(String clientName, BootstrapSequence sequence) {
+        System.out.println("Bootstrapping client " + clientName);
 
         for (BootstrapOperation operation : sequence.getOperations()) {
             Lwm2mMqttRequest request = operation.getRequest();
@@ -77,6 +105,7 @@ public class BootstrapServer { // TODO wait for bootstrap request
             try {
                 pendingRequest.waitForCompletion();
             } catch (Exception e) {
+                e.printStackTrace();
                 System.out.println("NIE UDALO SIE WYSLAC");
             }
 

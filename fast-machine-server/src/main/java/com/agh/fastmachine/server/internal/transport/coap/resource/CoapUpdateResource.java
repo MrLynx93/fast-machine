@@ -23,7 +23,7 @@ public class CoapUpdateResource extends CoapResource {
     public void handlePUT(CoapExchange exchange) {
         RegistrationInfo updatedInfo = registrationService.parseRegistrationInfo(exchange.advanced().getRequest());
         registrationService.handleUpdateForClientProxy(clientProxy, updatedInfo);
-        exchange.respond("2.04 Changed");
+        exchange.respond(CoAP.ResponseCode.CHANGED, "2.04 Changed");
         registrationService.updateFinished(clientProxy);
     }
 

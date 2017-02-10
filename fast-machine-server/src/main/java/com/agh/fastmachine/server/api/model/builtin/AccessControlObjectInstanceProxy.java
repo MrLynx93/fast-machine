@@ -22,4 +22,11 @@ public class AccessControlObjectInstanceProxy extends ObjectInstanceProxy {
     @Lwm2mResource(id = 3)
     public ObjectResourceProxy<IntegerResourceValue> accessControlOwner;
 
+
+    public AccessControlObjectInstanceProxy() {
+    }
+
+    public AccessControlObjectInstanceProxy(int id) {
+        super(id);
+    }
 }

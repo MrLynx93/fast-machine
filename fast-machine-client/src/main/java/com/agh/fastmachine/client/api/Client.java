@@ -16,12 +16,22 @@ import com.agh.fastmachine.core.internal.parser.WriteParser;
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.Request;
+import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.Endpoint;
 import org.eclipse.californium.core.network.EndpointManager;
+import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.core.server.ServerMessageDeliverer;
+import org.eclipse.californium.scandium.DTLSConnector;
+import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
+import org.eclipse.californium.scandium.dtls.cipher.CipherSuite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -45,18 +55,42 @@ public class Client {
     private CoapServer coapServer;
     private Endpoint endpoint;
 
-    public Client(String endpointClientName, List<ObjectBase<?>> objects, Endpoint endpoint) {
-        this.endpointClientName = endpointClientName;
-        this.endpoint = endpoint;
+
+    public Client(String name, List<ObjectBase<?>> objects, CoapClientConf configuration) {
+        this.endpointClientName = name;
+        this.endpoint = prepareEndpoint(configuration);
         this.coapServer = new CoapServer();
         this.coapServer.addEndpoint(this.endpoint);
+//        endpoint = coapServer.getEndpoint(configuration.getPort());
         this.clientResource = new ClientCoapResource(rootPath);
         this.coapServer.setMessageDeliverer(new ServerMessageDeliverer(clientResource));
         setObjects(objects);
     }
 
-    public Client(String endpointClientName, List<ObjectBase<?>> objects) {
-        this(endpointClientName, objects, EndpointManager.getEndpointManager().getDefaultEndpoint());
+    private Endpoint prepareEndpoint(CoapClientConf configuration) {
+        if (configuration == null) {
+            return new CoapEndpoint(5685);
+        }
+        if (configuration.isDtls()) {
+            try {
+                KeyStore keyStore = KeyStore.getInstance("JKS");
+                InputStream inKeyStore = getClass().getClassLoader().getResourceAsStream(configuration.getKeyStoreLocation());
+                keyStore.load(inKeyStore, configuration.getKeyStorePassword().toCharArray());
+
+                DtlsConnectorConfig.Builder connConfig = new DtlsConnectorConfig.Builder(new InetSocketAddress(configuration.getPort()));
+                connConfig.setSupportedCipherSuites(new CipherSuite[]{CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8});
+                connConfig.setIdentity((PrivateKey) keyStore.getKey("server", configuration.getKeyStorePassword().toCharArray()), keyStore.getCertificateChain("server"), true);
+                connConfig.setClientAuthenticationRequired(false);
+
+                DTLSConnector connector = new DTLSConnector(connConfig.build(), null);
+                return new CoapEndpoint(connector, NetworkConfig.getStandard());
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+        } else {
+            return new CoapEndpoint(configuration.getPort());
+        }
     }
 
     public void requestBootstrap() throws InterruptedException {
@@ -82,7 +116,7 @@ public class Client {
     public void deregister(int serverInstanceId) {
         ServerObjectInstance serverInstance = (ServerObjectInstance) objectBaseMap.get(1).getObjectInstance(serverInstanceId);
         registrationInterface.deregister(serverInstance);
-        LOG.debug("Deregistered from server shortServerId[{}]" + serverInstance.shortServerId.getValue().value);
+        LOG.debug("Deregistered from server shortServerId[{}]", serverInstance.shortServerId.getValue().value);
     }
 
     public void start() {
@@ -106,11 +140,11 @@ public class Client {
     }
 
     public void stop() {
-        coapServer.stop();
         Map<Integer, ServerObjectInstance> servers = ((ObjectBase<ServerObjectInstance>) objectBaseMap.get(1)).getObjectInstances();
         for (Integer serverInstanceId : servers.keySet()) {
             deregister(serverInstanceId);
         }
+        coapServer.stop();
     }
 
     private void setObjects(List<ObjectBase<?>> objects) {

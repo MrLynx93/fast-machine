@@ -47,7 +47,11 @@ public class PendingRequest {
         try {
             lock.lock();
             while (responseCount == 0) {
-                success = condition.await(timeout, unit);
+                boolean awaitingSuccess = condition.await(timeout, unit);
+                success = awaitingSuccess;
+                if (!awaitingSuccess) {
+                    break;
+                }
             }
         } catch (InterruptedException ex) {
             ex.printStackTrace();

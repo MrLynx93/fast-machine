@@ -1,8 +1,6 @@
-package com.agh.fastmachine.server.internal.transport.coap;
+package com.agh.fastmachine.client.api;
 
-import com.agh.fastmachine.server.internal.transport.TransportConfiguration;
-
-public class CoapConfiguration extends TransportConfiguration {
+public class CoapClientConf {
     private int port;
     private boolean dtls = false;
     private String keyStorePassword;

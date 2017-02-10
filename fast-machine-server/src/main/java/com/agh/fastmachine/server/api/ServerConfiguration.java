@@ -15,6 +15,7 @@ public class ServerConfiguration {
     public static final int TRASPORT_MQTT = 1;
     private Map<Integer, Class<? extends ObjectInstanceProxy>> instanceClasses = new HashMap<>();
     private Integer port;
+    private String name;
     private int transport = TRASPORT_COAP;
 
     public ServerConfiguration() {
@@ -45,5 +46,13 @@ public class ServerConfiguration {
 
     public void setTransport (int transport) {
         this.transport = transport;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

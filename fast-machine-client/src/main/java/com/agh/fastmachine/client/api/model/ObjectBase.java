@@ -99,7 +99,7 @@ public abstract class ObjectBase<T extends ObjectInstance> extends AbstractLwm2m
             Lwm2mNodeMerger.merge(newInstance, parsedInstance);
             client.getObjectInitializer().initializeInstance(newInstance, shortServerId);
             objectInstances.put(requestedInstanceId, newInstance);
-            LOG.debug("Server {} created object {}", request.getServerUri(), coapResource.getPath());
+            LOG.debug("Server {} created object {}", request.getServerUri(), coapResource.getPath() + coapResource.getName() + "/" + newInstance.getId());
             return new Lwm2mCreateResponse<>(CoAP.ResponseCode.CREATED, new byte[]{}, newInstance);//TODO response string
 
         } catch (ServerIdNotFoundException e) {
@@ -211,7 +211,7 @@ public abstract class ObjectBase<T extends ObjectInstance> extends AbstractLwm2m
         return requestedId;
     }
 
-    private int generateNextId() {
+    private synchronized int generateNextId() {
         Integer prevId = 66666;
         for (Integer id : objectInstances.navigableKeySet()) {
             if (id - prevId > 1)

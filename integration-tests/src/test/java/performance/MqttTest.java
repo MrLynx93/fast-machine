@@ -2,30 +2,47 @@ package performance;
 
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.ServerConfiguration;
+import com.agh.fastmachine.server.bootstrap.BootstrapServer;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
+import performance.model.TestInstanceProxy;
 import util.model.PingInstanceProxy;
 
-public class MqttTest extends BaseTest {
+import java.util.List;
+
+public class MqttTest extends AbstractMqttTest {
+    final String LOCAL_BROKER_ADDRESS = "localhost:8883";
+    final String PUBLIC_BROKER_ADDRESS = "TODO"; // TODO
 
     public static void main(String[] args) throws InterruptedException {
-        CoapTest coapTest = new CoapTest();
-        coapTest.doTest();
+        new MqttTest().test();
     }
 
     @Override
     public Server configureServer(int number) {
-        Server server = new Server();
-        server.setName("server_" + number);
-
         ServerConfiguration configuration = new ServerConfiguration();
+        configuration.setTransport(ServerConfiguration.TRASPORT_MQTT);
+        configuration.setName("server_" + number);
         configuration.addObjectSupport(TestInstanceProxy.class);
         configuration.addObjectSupport(PingInstanceProxy.class);
-        server.setConfiguration(configuration);
 
         MqttConfiguration transportConfiguration = new MqttConfiguration();
-        transportConfiguration.setBrokerAddress(BROKER_ADDRESS);
+        transportConfiguration.setBrokerAddress(LOCAL_BROKER_ADDRESS);
         transportConfiguration.setQos(1);
-        configuration.setTransport(ServerConfiguration.TRASPORT_MQTT);
-        return server;
+        transportConfiguration.setDtls(false);
+        return new Server(configuration, transportConfiguration);
     }
+
+    @Override
+    BootstrapServer configureBootstrapServer(List<Server> servers) {
+        MqttConfiguration mqttConfiguration = new MqttConfiguration();
+        mqttConfiguration.setQos(1);
+        mqttConfiguration.setBrokerAddress(LOCAL_BROKER_ADDRESS);
+        mqttConfiguration.setServerName("bootstrap-server");
+        mqttConfiguration.setDtls(false);
+
+        BootstrapServer bootstrapServer = new BootstrapServer(mqttConfiguration);
+        bootstrapServer.setSequenceForPattern(".*", configureBootstrapSequence(servers));
+        return bootstrapServer;
+    }
+
 }

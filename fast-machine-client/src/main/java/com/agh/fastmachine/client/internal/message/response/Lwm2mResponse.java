@@ -38,6 +38,7 @@ public class Lwm2mResponse {
             optionSet.setContentFormat(format);
             response.setOptions(optionSet);
         }
+        response.setToken(exchange.advanced().getRequest().getToken());
         exchange.respond(response);
     }
 }

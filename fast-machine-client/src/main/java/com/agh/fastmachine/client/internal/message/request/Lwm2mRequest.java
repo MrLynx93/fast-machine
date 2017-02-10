@@ -37,7 +37,7 @@ public class Lwm2mRequest {
     }
 
     public String getServerUri() {
-        return exchange.getSourceAddress().getHostAddress() + exchange.getSourcePort();
+        return exchange.getSourceAddress().getHostAddress() + ":" + exchange.getSourcePort();
     }
 
 }

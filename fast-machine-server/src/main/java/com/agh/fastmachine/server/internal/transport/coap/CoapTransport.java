@@ -18,11 +18,21 @@ import org.eclipse.californium.core.CoapHandler;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.coap.Request;
+import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.Endpoint;
+import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.core.server.resources.Resource;
+import org.eclipse.californium.scandium.DTLSConnector;
+import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
+import org.eclipse.californium.scandium.dtls.cipher.CipherSuite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.util.List;
 
 public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest> {
@@ -38,14 +48,34 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
     @Override
     public void start(CoapConfiguration configuration) {
         this.configuration = configuration;
-        int port = configuration.getPort();
         Resource bootstrapResource = new CoapBootstrapResource(configuration.getServer());
         Resource registrationResource = new CoapRegistrationResource(configuration.getServer());
 
-        coapServer = new CoapServer(port).add(bootstrapResource, registrationResource);
+        coapServer = new CoapServer(configuration.getPort()).add(bootstrapResource, registrationResource);
+
+        if (configuration.isDtls()) {
+            try {
+                KeyStore keyStore = KeyStore.getInstance("JKS");
+                InputStream inKeyStore = getClass().getClassLoader().getResourceAsStream(configuration.getKeyStoreLocation());
+                keyStore.load(inKeyStore, configuration.getKeyStorePassword().toCharArray());
+
+                DtlsConnectorConfig.Builder connConfig = new DtlsConnectorConfig.Builder(new InetSocketAddress(configuration.getPort()));
+                connConfig.setSupportedCipherSuites(new CipherSuite[]{CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8});
+                connConfig.setIdentity((PrivateKey) keyStore.getKey("server", configuration.getKeyStorePassword().toCharArray()), keyStore.getCertificateChain("server"), true);
+                connConfig.setClientAuthenticationRequired(false);
+
+                DTLSConnector connector = new DTLSConnector(connConfig.build(), null);
+                coapServer = new CoapServer().add(bootstrapResource, registrationResource);
+                coapServer.addEndpoint(new CoapEndpoint(connector, NetworkConfig.getStandard()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // TODO should this be another endpoint?
         endpoint = coapServer.getEndpoint(configuration.getPort());
         coapServer.start();
-        LOG.info("Started LWM2M server on port {}", port);
+        LOG.info("Started LWM2M server on port {}", configuration.getPort());
     }
 
     @Override
@@ -56,8 +86,11 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
     @Override // TODO TIMEOUT
     protected void doSendRequest(ClientProxyImpl client, Lwm2mCoapRequest request) throws Exception {
         CoapClient coapClient = new CoapClient(request.getCoapPath());
+
+        Request coapRequest = request.toCoapRequest();
+        coapRequest.setURI(client.getClientUrl());
         coapClient.setEndpoint(endpoint);
-        coapClient.advanced(handler, request.toCoapRequest());
+        coapClient.advanced(new RequestCacheHandler(request), coapRequest);
     }
 
     @Override
@@ -65,19 +98,25 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
         return (request.getOperation() == LWM2M.Operation.I_OBSERVE && response.isSuccess());
     }
 
-    private CoapHandler handler = new CoapHandler() {
+    private class RequestCacheHandler implements CoapHandler {
+        private final Lwm2mCoapRequest request;
+
+        public RequestCacheHandler(Lwm2mCoapRequest request) {
+            this.request = request;
+        }
 
         @Override
         public void onLoad(CoapResponse coapResponse) {
+            coapResponse.advanced().setToken(request.getToken().getBytes());
             Lwm2mResponse response = Lwm2mCoapResponse.fromCoapResponse(coapResponse);
             handleResponse(response);
         }
 
         @Override
         public void onError() {
-        }
 
-    };
+        }
+    }
 
     public RegistrationInfo parseRegistrationInfo(Request request) {
         List<String> params = request.getOptions().getUriQuery();

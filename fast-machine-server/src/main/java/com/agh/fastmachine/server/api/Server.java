@@ -23,12 +23,15 @@ public class Server {
     private BootstrapService bootstrapService;
     private RegistrationService registrationService;
     private Transport transport;
+    private TransportConfiguration transportConfiguration;
     private ServerConfiguration configuration;
     private Internal internal = new Internal();
     private String name;
 
-    public void start() {
-        start(null);
+    public Server(ServerConfiguration serverConf, TransportConfiguration transportConf) {
+        this.configuration = serverConf;
+        this.name = serverConf.getName();
+        this.transportConfiguration = transportConf;
     }
 
     public String getName() {
@@ -39,16 +42,19 @@ public class Server {
         this.name = name;
     }
 
-    public void start(TransportConfiguration transportConfiguration) {
+    public void start() {
         bootstrapService = new BootstrapService(this);
         registrationService = new RegistrationService(this);
 
         if (configuration.getTransport() == ServerConfiguration.TRASPORT_COAP) {
             transport = new CoapTransport();
-            transportConfiguration = createCoapTransportConfiguration();
+            if (transportConfiguration == null) {
+                transportConfiguration = createCoapTransportConfiguration();
+            }
+            transportConfiguration.setServer(this);
         } else {
             transport = new MqttTransport();
-            ((MqttConfiguration)transportConfiguration).setServerId(name);
+            ((MqttConfiguration)transportConfiguration).setServerName(name);
             transportConfiguration.setServer(this);
         }
         transport.start(transportConfiguration);

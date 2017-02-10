@@ -16,6 +16,11 @@ import org.eclipse.paho.client.mqttv3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,39 +41,62 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
     public void start(MqttConfiguration configuration) {
         try {
             this.configuration = configuration;
-            mqttClient = new MqttClient(configuration.getBrokerAddress(), "server");
-            registrationService = configuration.getServer().internal().getRegistrationService();
-            bootstrapService = configuration.getServer().internal().getBootstrapService();
-            clientManager = configuration.getServer().internal().getClientManager();
-
+            this.registrationService = configuration.getServer().internal().getRegistrationService();
+            this.bootstrapService = configuration.getServer().internal().getBootstrapService();
+            this.clientManager = configuration.getServer().internal().getClientManager();
             MqttConnectOptions options = new MqttConnectOptions();
             options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
             options.setCleanSession(true);
 
+            if (configuration.isDtls()) {
+                mqttClient = new MqttClient("ssl://" + configuration.getBrokerAddress(), configuration.getServer().getName());
+                try {
+                    SSLContext sslContext = SSLContext.getInstance("TLS");
+                    TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+
+                    KeyStore keyStore = KeyStore.getInstance("JKS");
+                    InputStream inKeyStore = getClass().getClassLoader().getResourceAsStream(configuration.getKeyStoreLocation());
+                    keyStore.load(inKeyStore, configuration.getKeyStorePassword().toCharArray());
+
+                    trustManagerFactory.init(keyStore);
+                    sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
+                    options.setSocketFactory(sslContext.getSocketFactory());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+            } else {
+                mqttClient = new MqttClient("tcp://" + configuration.getBrokerAddress(), configuration.getServerName());
+            }
+
+
+
+
+
             mqttClient.connect(options);
             mqttClient.setCallback(mqttCallback);
             mqttClient.setTimeToWait(2000);
-            mqttClient.subscribe("lynx/br/req/+/+/" + configuration.getServerId());
-            mqttClient.subscribe("lynx/bw/res/+/+/" + configuration.getServerId() + "/#");
-            mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerId());
-            mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerId() + "/#");
-            mqttClient.subscribe("lynx/bf/res/+/+/" + configuration.getServerId());
+            mqttClient.subscribe("lynx/br/req/+/+/" + configuration.getServerName());
+            mqttClient.subscribe("lynx/bw/res/+/+/" + configuration.getServerName() + "/#");
+            mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerName());
+            mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerName() + "/#");
+            mqttClient.subscribe("lynx/bf/res/+/+/" + configuration.getServerName());
 
-            mqttClient.subscribe("lynx/rr/req/+/+/" + configuration.getServerId());
-            mqttClient.subscribe("lynx/ru/req/+/+/" + configuration.getServerId());
-            mqttClient.subscribe("lynx/rd/req/+/+/" + configuration.getServerId());
+            mqttClient.subscribe("lynx/rr/req/+/+/" + configuration.getServerName());
+            mqttClient.subscribe("lynx/ru/req/+/+/" + configuration.getServerName());
+            mqttClient.subscribe("lynx/rd/req/+/+/" + configuration.getServerName());
 
-            mqttClient.subscribe("lynx/mr/res/+/+/" + configuration.getServerId() + "/#");
-            mqttClient.subscribe("lynx/mw/res/+/+/" + configuration.getServerId() + "/#");
-            mqttClient.subscribe("lynx/me/res/+/+/" + configuration.getServerId() + "/+/+/+");
-            mqttClient.subscribe("lynx/mc/res/+/+/" + configuration.getServerId() + "/+/+");
-            mqttClient.subscribe("lynx/md/res/+/+/" + configuration.getServerId() + "/+/+");
-            mqttClient.subscribe("lynx/ma/res/+/+/" + configuration.getServerId() + "/#");
-            mqttClient.subscribe("lynx/mm/res/+/+/" + configuration.getServerId() + "/#"); // TODO in doc md -> mm
+            mqttClient.subscribe("lynx/mr/res/+/+/" + configuration.getServerName() + "/#");
+            mqttClient.subscribe("lynx/mw/res/+/+/" + configuration.getServerName() + "/#");
+            mqttClient.subscribe("lynx/me/res/+/+/" + configuration.getServerName() + "/+/+/+");
+            mqttClient.subscribe("lynx/mc/res/+/+/" + configuration.getServerName() + "/+/+");
+            mqttClient.subscribe("lynx/md/res/+/+/" + configuration.getServerName() + "/+/+");
+            mqttClient.subscribe("lynx/ma/res/+/+/" + configuration.getServerName() + "/#");
+            mqttClient.subscribe("lynx/mm/res/+/+/" + configuration.getServerName() + "/#"); // TODO in doc md -> mm
 
-            mqttClient.subscribe("lynx/io/res/+/+/" + configuration.getServerId() + "/#");
-            mqttClient.subscribe("lynx/in/req/+/+/" + configuration.getServerId() + "/#");
-            mqttClient.subscribe("lynx/ic/res/+/+/" + configuration.getServerId() + "/#");
+            mqttClient.subscribe("lynx/io/res/+/+/" + configuration.getServerName() + "/#");
+            mqttClient.subscribe("lynx/in/req/+/+/" + configuration.getServerName() + "/#");
+            mqttClient.subscribe("lynx/ic/res/+/+/" + configuration.getServerName() + "/#");
 
 
         } catch (MqttException e) {
@@ -147,6 +175,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
         @Override
         public void connectionLost(Throwable throwable) {
             System.out.println("Connection lost.");
+            throwable.printStackTrace();
             throw new RuntimeException(throwable);
         }
 
@@ -158,7 +187,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
         if (!registrationService.isClientRegistered(endpointClientName)) {
             ClientProxyImpl clientProxy = clientManager.createClient(endpointClientName);
-            clientProxy.setServerId(configuration.getServerId());
+            clientProxy.setServerId(configuration.getServerName());
             clientProxy.setRegisterTime(new Date());
             clientProxy.setLastUpdateTime(new Date());
             registrationService.registerClientProxy(clientProxy, registrationInfo);

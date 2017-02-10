@@ -58,6 +58,8 @@ public class ReadIT { // TODO test multiple
         assertThat(exampleInstanceProxy2.stringResource.getValue().value, equalTo("Hello, instance 4 :)"));
         assertThat(exampleInstanceProxy2.stringResource.isChanged(), equalTo(false));
         assertThat(exampleInstanceProxy2.isChanged(), equalTo(false));
+
+//        Thread.sleep(1000000000000000000L);
     }
 
     @Test
