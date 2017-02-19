@@ -1,6 +1,5 @@
 package com.agh.fastmachine.server.api.model;
 
-import com.agh.fastmachine.core.api.model.annotation.Lwm2mObject;
 import com.agh.fastmachine.core.api.model.annotation.Lwm2mObjectInstance;
 import com.agh.fastmachine.core.api.model.annotation.Lwm2mResource;
 import com.agh.fastmachine.core.internal.model.ObjectInstanceModel;

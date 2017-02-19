@@ -12,10 +12,10 @@ public class Stats {
     private Map<ClientProxy, List<Event>> clientStats = new ConcurrentHashMap<>();
 
     public void addEvent(ClientProxy client, Event event) {
-        if (!clientStats.containsKey(client)) {
-            clientStats.put(client, new ArrayList<>());
-        }
-        clientStats.get(client).add(event);
+            if (!clientStats.containsKey(client)) {
+                clientStats.put(client, new ArrayList<>());
+            }
+            clientStats.get(client).add(event);
     }
 
 }

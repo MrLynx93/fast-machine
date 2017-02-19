@@ -181,7 +181,7 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
                         break;
                     }
                 } catch (InterruptedException e) {
-                    LOG.info("Interrupted client thread. Probably deregistered");
+                    LOG.info("Interrupted client {} on server {} update thread. Probably deregistered", endpointClientName, ClientProxyImpl.this.server.getName());
                     break;
                 } finally {
                     lock.unlock();

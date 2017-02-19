@@ -1,5 +1,6 @@
 package com.agh.fastmachine.client.api.model;
 
+import com.agh.fastmachine.client.api.model.builtin.SecurityObjectInstance;
 import com.agh.fastmachine.client.internal.access.ServerAccessVerifier;
 import com.agh.fastmachine.client.internal.message.request.Lwm2mContentRequest;
 import com.agh.fastmachine.client.internal.message.request.Lwm2mRequest;
@@ -98,6 +99,11 @@ public abstract class ObjectBase<T extends ObjectInstance> extends AbstractLwm2m
             checkResourcesCreateAccessRights(newInstance, parsedInstance);
             Lwm2mNodeMerger.merge(newInstance, parsedInstance);
             client.getObjectInitializer().initializeInstance(newInstance, shortServerId);
+
+            for (SecurityObjectInstance instance : client.getServerSecurityMap().values()) {
+                client.getObjectInitializer().initAttr(newInstance, instance.shortServerId.getValue().value);
+            }
+
             objectInstances.put(requestedInstanceId, newInstance);
             LOG.debug("Server {} created object {}", request.getServerUri(), coapResource.getPath() + coapResource.getName() + "/" + newInstance.getId());
             return new Lwm2mCreateResponse<>(CoAP.ResponseCode.CREATED, new byte[]{}, newInstance);//TODO response string

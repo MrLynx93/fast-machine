@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 abstract class AbstractTest {
     private static final char[] CHARSET = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
     private static final int PAYLOAD_LENGTH = 1000;
-    static final int TIMES = 5;
+    static final int TIMES = 50;
     static final int SERVERS_NUMBER = 5;
     static final int CLIENTS_NUMBER = 5;
     static final int LIFETIME = 20;
@@ -47,7 +47,7 @@ abstract class AbstractTest {
                         // 2. Write
                         if (client.getStatus() == ClientProxyStatus.REGISTERED) {
                             newInstance.payload.setValue(new StringResourceValue(newPayload()));
-                            newInstance.write();
+                            newInstance.payload.write();
                         }
                         // 3. Read
                         if (client.getStatus() == ClientProxyStatus.REGISTERED) {
@@ -61,8 +61,9 @@ abstract class AbstractTest {
                         if (client.getStatus() == ClientProxyStatus.REGISTERED) {
                             newInstance.delete();
                         }
+
                         try {
-                            Thread.sleep(1000 + new Random().nextInt(1500));
+                            Thread.sleep(100 + new Random().nextInt(1500));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

@@ -66,7 +66,7 @@ public class TestUtil {
 
 
     public static Client startExampleClient(String endpointClientName, String serverUri) {
-        Client client = new Client(endpointClientName, factoryBootstrap(serverUri), getClientConf());
+        Client client = new Client(endpointClientName, createExampleClientConfiguration(serverUri), getClientConf());
         client.start();
         return client;
     }

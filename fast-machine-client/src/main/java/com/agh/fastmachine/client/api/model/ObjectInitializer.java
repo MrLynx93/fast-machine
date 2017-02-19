@@ -50,6 +50,14 @@ public class ObjectInitializer {
         instance.setClient(client);
     }
 
+    public void initAttr(ObjectInstance instance, int serverId) {
+        instance.writeAttributes.put(serverId, AttributesFactory.create(instance));
+        for (ObjectResourceModel<?> objectResourceModel : instance.getResources().values()) {
+            ObjectResource objectResource = (ObjectResource) objectResourceModel;
+            objectResource.writeAttributes.put(serverId, AttributesFactory.create(objectResource));
+        }
+    }
+
     public AccessControlObjectInstance getNewACO(int objectId, int instanceId, Integer serverId) {
         AccessControlObjectInstance aco = accessControlBase.getNewInstance();
         ((ObjectInstance) aco).setAccessControlObjectInstance(new AccessControlObjectInstance(-1));
