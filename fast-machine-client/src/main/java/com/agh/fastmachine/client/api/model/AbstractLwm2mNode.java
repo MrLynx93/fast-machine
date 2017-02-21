@@ -61,7 +61,7 @@ public abstract class AbstractLwm2mNode implements VisitableObjectNode, ObjectNo
             node = ServerAccessVerifier.checkAccessRights(this, shortServerId, Operations.READ);
             node = ReadAccessFilter.filter(node);
             byte[] bytes = serializeNode(node);
-            LOG.debug("Server {} executed read on node {}", request.getServerUri(), coapResource.getPath());
+            LOG.debug("Server {} executed read on node {}", request.getServerUri(), coapResource.getPath() + coapResource.getName());
             return new Lwm2mResponse(CoAP.ResponseCode.CONTENT, bytes);
 
         } catch (ServerAccessRightsException e) {

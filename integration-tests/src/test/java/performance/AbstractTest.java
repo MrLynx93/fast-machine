@@ -18,9 +18,9 @@ import java.util.concurrent.Executors;
 abstract class AbstractTest {
     private static final char[] CHARSET = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
     private static final int PAYLOAD_LENGTH = 1000;
-    static final int TIMES = 50;
-    static final int SERVERS_NUMBER = 5;
-    static final int CLIENTS_NUMBER = 5;
+    static final int TIMES = 100;
+    static final int SERVERS_NUMBER = 1;
+    static final int CLIENTS_NUMBER = 1;
     static final int LIFETIME = 20;
 
     ExecutorService executor = Executors.newFixedThreadPool(SERVERS_NUMBER * CLIENTS_NUMBER);
@@ -50,9 +50,9 @@ abstract class AbstractTest {
                             newInstance.payload.write();
                         }
                         // 3. Read
-                        if (client.getStatus() == ClientProxyStatus.REGISTERED) {
-                            newInstance.read();
-                        }
+//                        if (client.getStatus() == ClientProxyStatus.REGISTERED) {
+//                            newInstance.read();
+//                        }
                         // 4. Read (to count operations)
                         if (client.getStatus() == ClientProxyStatus.REGISTERED) {
                             constantInstance.clientId.read();
@@ -63,7 +63,7 @@ abstract class AbstractTest {
                         }
 
                         try {
-                            Thread.sleep(100 + new Random().nextInt(1500));
+                            Thread.sleep(100 + new Random().nextInt(200));
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

@@ -39,6 +39,7 @@ abstract class AbstractCoapTest extends AbstractTest {
 
         /* Wait until all operation finished */
         counter.await();
+        System.out.println("Started deregistering");
         clients.forEach(Client::stop);
 
         /* Wait until all clients/servers deregistered */

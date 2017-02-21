@@ -41,7 +41,7 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
         this.endpointClientName = endpointClientName;
         this.status = ClientProxyStatus.CREATED;
         this.transport = server.internal().getTransportLayer();
-        this.keepaliveThread = new KeepaliveThread();
+        this.keepaliveThread = new KeepaliveThread(server.getName(), endpointClientName);
         this.keepaliveThread.start();
     }
 
@@ -168,6 +168,13 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
     private class KeepaliveThread extends Thread {
         private Lock lock = new ReentrantLock();
         private Condition condition = lock.newCondition();
+        private String serverName;
+        private String clientName;
+
+        public KeepaliveThread(String serverName, String clientName) {
+            this.serverName = serverName;
+            this.clientName = clientName;
+        }
 
         @Override
         public void run() {
@@ -176,7 +183,7 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
                     lock.lock();
                     if (!condition.await(getTimeout(), TimeUnit.MILLISECONDS)) {
                         // If timeout (no update came)
-                        LOG.info("Didn't receive update. Removing client account");
+                        LOG.info("Didn't receive update. Removing client account. Client {}, server {}", clientName, serverName);
                         clientManager.removeClientForEndpointName(endpointClientName);
                         break;
                     }

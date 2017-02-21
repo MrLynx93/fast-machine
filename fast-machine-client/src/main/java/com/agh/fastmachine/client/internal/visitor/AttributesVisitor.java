@@ -42,7 +42,7 @@ public class AttributesVisitor implements ObjectNodeVisitor {
     }
 
     private void fillMissingAttributes(Attributes attributes) {
-        if(this.attributes.minimumPeriod == null) {
+        if(this.attributes.minimumPeriod == null) { // TODO znowu nullpointer
             this.attributes.minimumPeriod = attributes.minimumPeriod;
         }
         if(this.attributes.maximumPeriod == null) {

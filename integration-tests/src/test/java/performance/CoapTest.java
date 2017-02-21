@@ -35,5 +35,5 @@ public class CoapTest extends AbstractCoapTest {
         transportConfiguration.setDtls(false);
         return new Server(configuration, transportConfiguration);
     }
-
+//host 127.0.0.1 and (port 19001 or port 19002 or port 19003 or port 19004 or port 19005)
 }

@@ -10,8 +10,8 @@ import util.model.PingInstanceProxy;
 import java.util.List;
 
 public class MqttTest extends AbstractMqttTest {
-    final String LOCAL_BROKER_ADDRESS = "localhost:8883";
-    final String PUBLIC_BROKER_ADDRESS = "TODO"; // TODO
+    final String LOCAL_BROKER_ADDRESS = "localhost:1883";
+    final String PUBLIC_BROKER_ADDRESS = "ec2-34-250-196-139.eu-west-1.compute.amazonaws.com:1883"; // TODO
 
     public static void main(String[] args) throws InterruptedException {
         new MqttTest().test();
@@ -27,7 +27,7 @@ public class MqttTest extends AbstractMqttTest {
 
         MqttConfiguration transportConfiguration = new MqttConfiguration();
         transportConfiguration.setBrokerAddress(LOCAL_BROKER_ADDRESS);
-        transportConfiguration.setQos(1);
+        transportConfiguration.setQos(0);
         transportConfiguration.setDtls(false);
         return new Server(configuration, transportConfiguration);
     }
@@ -35,7 +35,7 @@ public class MqttTest extends AbstractMqttTest {
     @Override
     BootstrapServer configureBootstrapServer(List<Server> servers) {
         MqttConfiguration mqttConfiguration = new MqttConfiguration();
-        mqttConfiguration.setQos(1);
+        mqttConfiguration.setQos(0);
         mqttConfiguration.setBrokerAddress(LOCAL_BROKER_ADDRESS);
         mqttConfiguration.setServerName("bootstrap-server");
         mqttConfiguration.setDtls(false);

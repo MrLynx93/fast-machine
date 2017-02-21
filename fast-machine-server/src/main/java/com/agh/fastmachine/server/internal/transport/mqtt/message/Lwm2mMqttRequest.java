@@ -54,7 +54,9 @@ public class Lwm2mMqttRequest extends Lwm2mRequest {
     }
 
     public MqttMessage toMqttMessage() {
-        return new MqttMessage(toBytes());
+        MqttMessage message = new MqttMessage(toBytes());
+        message.setQos(0);
+        return message;
     }
 
     public byte[] toBytes() {

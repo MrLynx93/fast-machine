@@ -60,7 +60,7 @@ public class RegistrationInterface {
             ServerInfo serverInfo = new ServerInfo(registrationLocation, lifetime);
             serverInfoMap.put(server.shortServerId.getValue().value, serverInfo);
             updateInterface.startUpdating(server);
-            LOG.debug("Successfully registered into server {}", security.serverUri.getValue().value);
+            LOG.debug("Successfully registered client {} into server {}", client.getEndpointClientName(), security.serverUri.getValue().value);
         } catch (InterruptedException ignored) {
         }
     }
@@ -82,7 +82,7 @@ public class RegistrationInterface {
                 throw new RuntimeException("Failed to deregister. ResponseCode: " + response.getCode());
             }
             updateInterface.stopUpdating(server);
-            LOG.debug("Successfully deregistered from server {}", registerEndpoint);
+            LOG.debug("Successfully deregistered client {} from server {}", client.getEndpointClientName(), registerEndpoint);
         } catch (InterruptedException ignored) {
         }
     }
