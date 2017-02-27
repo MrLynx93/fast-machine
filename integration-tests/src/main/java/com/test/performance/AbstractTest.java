@@ -1,33 +1,52 @@
-package performance;
+package com.test.performance;
 
 import com.agh.fastmachine.core.api.model.resourcevalue.StringResourceValue;
 import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.listener.RegistrationListener;
 import com.agh.fastmachine.server.internal.client.ClientProxyStatus;
-import performance.model.TestInstanceProxy;
-import util.TestUtil;
+import com.test.performance.coap.client.AbstractCoapTestClient;
+import com.test.performance.model.TestInstanceProxy;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.SecureRandom;
-import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-abstract class AbstractTest {
+public abstract class AbstractTest {
     private static final char[] CHARSET = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
     private static final int PAYLOAD_LENGTH = 1000;
-    static final int TIMES = 100;
-    static final int SERVERS_NUMBER = 1;
-    static final int CLIENTS_NUMBER = 1;
-    static final int LIFETIME = 20;
 
-    ExecutorService executor = Executors.newFixedThreadPool(SERVERS_NUMBER * CLIENTS_NUMBER);
-    CountDownLatch deregisteredCount = new CountDownLatch(SERVERS_NUMBER * CLIENTS_NUMBER);
-    CountDownLatch registeredCount = new CountDownLatch(SERVERS_NUMBER * CLIENTS_NUMBER);
+    public static String SERVER_URL = "localhost";
+    public static int TIMES = 100;
+    public static int SERVERS_NUMBER = 1;
+    public static int CLIENTS_NUMBER = 1;
+    public static int LIFETIME = 20;
 
-    void prepareTest(final Server server) {
+    static {
+        try {
+            Properties properties = new Properties();
+            ClassLoader loader = AbstractCoapTestClient.class.getClassLoader();
+            InputStream inputStream = loader.getResourceAsStream("test.properties");
+            properties.load(inputStream);
+            SERVERS_NUMBER = Integer.parseInt(properties.getProperty("servers"));
+            CLIENTS_NUMBER = Integer.parseInt(properties.getProperty("clients"));
+            SERVER_URL = "coap://" + properties.getProperty("coap.serverUrl") + ":";
+            TIMES = Integer.parseInt(properties.getProperty("times"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ExecutorService executor = Executors.newFixedThreadPool(SERVERS_NUMBER * CLIENTS_NUMBER);
+    public CountDownLatch deregisteredCount = new CountDownLatch(SERVERS_NUMBER * CLIENTS_NUMBER);
+    public CountDownLatch registeredCount = new CountDownLatch(SERVERS_NUMBER * CLIENTS_NUMBER);
+
+    public void prepareTest(final Server server) {
         server.setRegistrationListener(new RegistrationListener() {
             @Override
             public void onRegister(ClientProxy client) {
@@ -47,10 +66,10 @@ abstract class AbstractTest {
                         // 1. Create
 
                         // 2. Write
-//                        if (client.getStatus() == ClientProxyStatus.REGISTERED) {
-//                            newInstance.payload.setValue(new StringResourceValue(newPayload()));
-//                            newInstance.payload.write();
-//                        }
+                        if (client.getStatus() == ClientProxyStatus.REGISTERED) {
+                            newInstance.payload.setValue(new StringResourceValue(newPayload()));
+                            newInstance.payload.write();
+                        }
                         // 3. Read
 //                        if (client.getStatus() == ClientProxyStatus.REGISTERED) {
 //                            newInstance.read();

@@ -20,19 +20,19 @@ public class Event {
     // All uplink
 
     public static Event uplinkRequestReceiveSuccess(LWM2M.Operation op) {
-        return new Event("uplink", "req", true, op);
+        return new Event("uplink  ", "req", true, op);
     }
 
     public static Event uplinkRequestReceiveTimeout(LWM2M.Operation op) {
-        return new Event("uplink", "req", false, op);
+        return new Event("uplink  ", "req", false, op);
     }
 
     public static Event uplinkResponseSendSuccess(LWM2M.Operation op) {
-        return new Event("uplink", "res", true, op);
+        return new Event("uplink  ", "res", true, op);
     }
 
     public static Event uplinkResponseSendTimeout(LWM2M.Operation op) {
-        return new Event("uplink", "res", false, op);
+        return new Event("uplink  ", "res", false, op);
     }
 
     // All downlink

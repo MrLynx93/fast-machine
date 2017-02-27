@@ -1,4 +1,4 @@
-package performance;
+package com.test.performance;
 
 import com.agh.fastmachine.core.api.model.resourcevalue.BooleanResourceValue;
 import com.agh.fastmachine.core.api.model.resourcevalue.IntegerResourceValue;

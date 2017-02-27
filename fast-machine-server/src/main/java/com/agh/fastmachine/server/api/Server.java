@@ -11,6 +11,7 @@ import com.agh.fastmachine.server.internal.transport.coap.CoapConfiguration;
 import com.agh.fastmachine.server.internal.transport.TransportConfiguration;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttTransport;
+import com.agh.fastmachine.server.internal.transport.stats.Stats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,10 @@ public class Server {
         this.configuration = serverConf;
         this.name = serverConf.getName();
         this.transportConfiguration = transportConf;
+    }
+
+    public Stats getStats() {
+        return transport.stats;
     }
 
     public String getName() {

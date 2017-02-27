@@ -29,7 +29,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
     private final WriteAttributesParser writeAttributesParser = new WriteAttributesParser();
     private final ReadParser readParser = new ServerReadParser();
     protected RequestBuilder<REQ> requestBuilder;
-    protected Stats stats = new Stats();
+    public Stats stats = new Stats();
     protected T configuration;
 
     public abstract void start(T configuration);

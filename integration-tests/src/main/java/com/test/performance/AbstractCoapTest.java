@@ -1,4 +1,4 @@
-package performance;
+package com.test.performance;
 
 import com.agh.fastmachine.client.api.Client;
 import com.agh.fastmachine.client.api.model.ObjectBase;
@@ -10,8 +10,8 @@ import com.agh.fastmachine.core.api.model.resourcevalue.BooleanResourceValue;
 import com.agh.fastmachine.core.api.model.resourcevalue.IntegerResourceValue;
 import com.agh.fastmachine.core.api.model.resourcevalue.StringResourceValue;
 import com.agh.fastmachine.server.api.Server;
-import performance.model.TestObjectBase;
-import performance.model.TestObjectInstance;
+import com.test.performance.model.TestObjectBase;
+import com.test.performance.model.TestObjectInstance;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest> {
     private static final Logger LOG = LoggerFactory.getLogger(MqttTransport.class);
+    private static final int TIMEOUT = 32000;
 
     private MqttClient mqttClient;
     private RegistrationService registrationService;
@@ -76,27 +77,27 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
             mqttClient.connect(options);
             mqttClient.setCallback(mqttCallback);
             mqttClient.setTimeToWait(2000);
-            mqttClient.subscribe("lynx/br/req/+/+/" + configuration.getServerName());
-            mqttClient.subscribe("lynx/bw/res/+/+/" + configuration.getServerName() + "/#");
-            mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerName());
-            mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerName() + "/#");
-            mqttClient.subscribe("lynx/bf/res/+/+/" + configuration.getServerName());
+            mqttClient.subscribe("lynx/br/req/+/+/" + configuration.getServerName(), configuration.getQos());
+            mqttClient.subscribe("lynx/bw/res/+/+/" + configuration.getServerName() + "/#", configuration.getQos());
+            mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerName(), configuration.getQos());
+            mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerName() + "/#", configuration.getQos());
+            mqttClient.subscribe("lynx/bf/res/+/+/" + configuration.getServerName(), configuration.getQos());
 
-            mqttClient.subscribe("lynx/rr/req/+/+/" + configuration.getServerName());
-            mqttClient.subscribe("lynx/ru/req/+/+/" + configuration.getServerName());
-            mqttClient.subscribe("lynx/rd/req/+/+/" + configuration.getServerName());
+            mqttClient.subscribe("lynx/rr/req/+/+/" + configuration.getServerName(), configuration.getQos());
+            mqttClient.subscribe("lynx/ru/req/+/+/" + configuration.getServerName(), configuration.getQos());
+            mqttClient.subscribe("lynx/rd/req/+/+/" + configuration.getServerName(), configuration.getQos());
 
-            mqttClient.subscribe("lynx/mr/res/+/+/" + configuration.getServerName() + "/#");
-            mqttClient.subscribe("lynx/mw/res/+/+/" + configuration.getServerName() + "/#");
-            mqttClient.subscribe("lynx/me/res/+/+/" + configuration.getServerName() + "/+/+/+");
-            mqttClient.subscribe("lynx/mc/res/+/+/" + configuration.getServerName() + "/+/+");
-            mqttClient.subscribe("lynx/md/res/+/+/" + configuration.getServerName() + "/+/+");
-            mqttClient.subscribe("lynx/ma/res/+/+/" + configuration.getServerName() + "/#");
-            mqttClient.subscribe("lynx/mm/res/+/+/" + configuration.getServerName() + "/#"); // TODO in doc md -> mm
+            mqttClient.subscribe("lynx/mr/res/+/+/" + configuration.getServerName() + "/#", configuration.getQos());
+            mqttClient.subscribe("lynx/mw/res/+/+/" + configuration.getServerName() + "/#", configuration.getQos());
+            mqttClient.subscribe("lynx/me/res/+/+/" + configuration.getServerName() + "/+/+/+", configuration.getQos());
+            mqttClient.subscribe("lynx/mc/res/+/+/" + configuration.getServerName() + "/+/+", configuration.getQos());
+            mqttClient.subscribe("lynx/md/res/+/+/" + configuration.getServerName() + "/+/+", configuration.getQos());
+            mqttClient.subscribe("lynx/ma/res/+/+/" + configuration.getServerName() + "/#", configuration.getQos());
+            mqttClient.subscribe("lynx/mm/res/+/+/" + configuration.getServerName() + "/#", configuration.getQos()); // TODO in doc md -> mm
 
-            mqttClient.subscribe("lynx/io/res/+/+/" + configuration.getServerName() + "/#");
-            mqttClient.subscribe("lynx/in/req/+/+/" + configuration.getServerName() + "/#");
-            mqttClient.subscribe("lynx/ic/res/+/+/" + configuration.getServerName() + "/#");
+            mqttClient.subscribe("lynx/io/res/+/+/" + configuration.getServerName() + "/#", configuration.getQos());
+            mqttClient.subscribe("lynx/in/req/+/+/" + configuration.getServerName() + "/#", configuration.getQos());
+            mqttClient.subscribe("lynx/ic/res/+/+/" + configuration.getServerName() + "/#", configuration.getQos());
 
 
         } catch (MqttException e) {
@@ -115,15 +116,26 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
     @Override
     protected void doSendRequest(ClientProxyImpl client, Lwm2mMqttRequest request) throws Exception {
-        mqttClient.publish("lynx/" + request.getTopic().toString(), request.toMqttMessage());
+        doSendMessage("lynx/" + request.getTopic().toString(), request.toMqttMessage());
         stats.addEvent(client, Event.downlinkRequestSendSuccess(request.getOperation()));
         LOG.debug("Sent request {}", request.getTopic());
     }
 
     private void doSendResponse(ClientProxyImpl client, Lwm2mMqttResponse response) throws Exception {
-        mqttClient.publish("lynx/" + response.getTopic().toString(), response.toMqttMessage());
+        doSendMessage("lynx/" + response.getTopic().toString(), response.toMqttMessage());
         stats.addEvent(client, Event.uplinkResponseSendSuccess(response.getTopic().getOperation()));
         LOG.debug("Sent response {}", response.getTopic());
+    }
+
+    private void doSendMessage(String topic, MqttMessage message) throws MqttException {
+        try {
+            message.setQos(configuration.getQos());
+            mqttClient.publish(topic, message);
+        } catch (MqttException e) {
+            if (configuration.getQos() != 0 || (configuration.getQos() == 0 && e.getReasonCode() != TIMEOUT)) {
+                throw e;
+            }
+        }
     }
 
     @Override
@@ -203,6 +215,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
                 doSendResponse(clientProxy, response);
                 registrationService.registerFinished(clientProxy);
             } catch (Exception e) {
+                e.printStackTrace();
                 stats.addEvent(clientProxy, Event.uplinkResponseSendTimeout(response.getTopic().getOperation()));
                 LOG.error("Couldn't send response to {}", request);
             }
@@ -230,6 +243,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
     private void handleDeregister(Lwm2mMqttRequest request) {
         ClientProxyImpl clientProxy = registeredClients.get(request.getTopic().getClientId());
+        stats.addEvent(clientProxy, Event.uplinkRequestReceiveSuccess(LWM2M.Operation.R_DEREGISTER));
         registrationService.deregisterClientProxy(clientProxy);
         registeredClients.remove(request.getTopic().getClientId());
         clientProxy.setRegistrationInfo(null);
@@ -240,7 +254,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
             registrationService.deregisterFinished(clientProxy);
             LOG.debug("Successfully deregistered client {} from server {}", clientProxy.getClientEndpointName(), this.configuration.getServerName());
         } catch (Exception e) {
-            stats.addEvent(clientProxy, Event.uplinkResponseSendSuccess(response.getTopic().getOperation()));
+            stats.addEvent(clientProxy, Event.uplinkResponseSendTimeout(response.getTopic().getOperation()));
             LOG.error("Couldn't send response to {}", request);
         }
     }

@@ -1,11 +1,11 @@
-package performance;
+package com.test.performance;
 
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.ServerConfiguration;
 import com.agh.fastmachine.server.bootstrap.BootstrapServer;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
-import performance.model.TestInstanceProxy;
-import util.model.PingInstanceProxy;
+import com.test.performance.model.TestInstanceProxy;
+import com.test.util.model.PingInstanceProxy;
 
 import java.util.List;
 
