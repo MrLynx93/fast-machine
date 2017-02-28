@@ -13,6 +13,7 @@ import com.test.performance.AbstractTest;
 import com.test.performance.model.TestObjectBase;
 import com.test.performance.model.TestObjectInstance;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,9 +21,10 @@ import java.util.concurrent.CountDownLatch;
 
 public abstract class AbstractCoapTestClient extends AbstractTest {
     private CountDownLatch counter = new CountDownLatch(TIMES * SERVERS_NUMBER * CLIENTS_NUMBER);
+    private List<Client> clients;
 
-    public void test() throws InterruptedException {
-        List<Client> clients = new ArrayList<>();
+    public void test() throws InterruptedException, IOException {
+        clients = new ArrayList<>();
         for (int i = 0; i < CLIENTS_NUMBER; i++) {
             Client client = configureClient(i + 1);
             clients.add(client);
@@ -31,8 +33,22 @@ public abstract class AbstractCoapTestClient extends AbstractTest {
 
         /* Wait until all operation finished */
         System.out.println("Started all clients");
-        counter.await();
+        executor.submit(() -> {
+            try {
+                counter.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
+            System.out.println("Started deregistering");
+            clients.forEach(Client::stop);
+
+            System.out.println("Finished deregistering");
+            System.exit(0);
+        });
+
+        System.in.read();
+        System.out.println("Canceled test");
         System.out.println("Started deregistering");
         clients.forEach(Client::stop);
 

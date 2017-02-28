@@ -12,7 +12,7 @@ import java.util.List;
 public class MqttTest extends AbstractMqttTest {
     final String LOCAL_BROKER_ADDRESS = "localhost:1883";
     final String PUBLIC_BROKER_ADDRESS = "ec2-34-250-196-139.eu-west-1.compute.amazonaws.com:1883"; // TODO
-    final String BROKER_ADDRESS = LOCAL_BROKER_ADDRESS;
+    final String BROKER_ADDRESS = PUBLIC_BROKER_ADDRESS;
 
     public static void main(String[] args) throws InterruptedException {
         new MqttTest().test();

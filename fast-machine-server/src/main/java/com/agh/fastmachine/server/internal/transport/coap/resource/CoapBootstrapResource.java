@@ -4,6 +4,7 @@ import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.internal.client.ClientManager;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.service.BootstrapService;
+import com.agh.fastmachine.server.internal.transport.stats.Stats;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.Request;
@@ -18,7 +19,7 @@ public class CoapBootstrapResource extends CoapResource {
     private final BootstrapService bootstrapService;
     private final ClientManager clientManager;
 
-    public CoapBootstrapResource(Server server) {
+    public CoapBootstrapResource(Server server, Stats stats) {
         super("bs");
         this.clientManager = server.internal().getClientManager();
         this.bootstrapService = server.internal().getBootstrapService();

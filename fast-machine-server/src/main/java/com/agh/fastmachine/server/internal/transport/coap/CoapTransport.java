@@ -13,6 +13,7 @@ import com.agh.fastmachine.server.internal.transport.coap.message.Lwm2mCoapReque
 import com.agh.fastmachine.server.internal.transport.coap.message.Lwm2mCoapResponse;
 import com.agh.fastmachine.server.internal.transport.coap.resource.CoapBootstrapResource;
 import com.agh.fastmachine.server.internal.transport.coap.resource.CoapRegistrationResource;
+import com.agh.fastmachine.server.internal.transport.stats.Event;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapHandler;
 import org.eclipse.californium.core.CoapResponse;
@@ -48,8 +49,8 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
     @Override
     public void start(CoapConfiguration configuration) {
         this.configuration = configuration;
-        Resource bootstrapResource = new CoapBootstrapResource(configuration.getServer());
-        Resource registrationResource = new CoapRegistrationResource(configuration.getServer());
+        Resource bootstrapResource = new CoapBootstrapResource(configuration.getServer(), stats);
+        Resource registrationResource = new CoapRegistrationResource(configuration.getServer(), stats);
 
         coapServer = new CoapServer(configuration.getPort()).add(bootstrapResource, registrationResource);
 
@@ -91,6 +92,7 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
         coapRequest.setURI(client.getClientUrl());
         coapClient.setEndpoint(endpoint);
         coapClient.advanced(new RequestCacheHandler(request), coapRequest);
+        stats.addEvent(client, Event.downlinkRequestSendSuccess(request.getOperation()));
     }
 
     @Override

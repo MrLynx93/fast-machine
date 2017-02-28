@@ -5,6 +5,9 @@ import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.client.ClientManager;
 import com.agh.fastmachine.server.internal.service.RegistrationService;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
+import com.agh.fastmachine.server.internal.transport.LWM2M;
+import com.agh.fastmachine.server.internal.transport.stats.Event;
+import com.agh.fastmachine.server.internal.transport.stats.Stats;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.server.resources.CoapExchange;
@@ -12,11 +15,13 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 public class CoapRegistrationResource extends CoapResource {
     private final RegistrationService registrationService;
     private final ClientManager clientManager;
+    private Stats stats;
 
-    public CoapRegistrationResource(Server server) {
+    public CoapRegistrationResource(Server server, Stats stats) {
         super("rd");
         this.registrationService = server.internal().getRegistrationService();
         this.clientManager = server.internal().getClientManager();
+        this.stats = stats;
     }
 
     @Override
@@ -27,6 +32,7 @@ public class CoapRegistrationResource extends CoapResource {
 
         if (!registrationService.isClientRegistered(endpointClientName)) {
             ClientProxyImpl clientProxy = clientManager.createClient(endpointClientName);
+            stats.addEvent(clientProxy, Event.uplinkRequestReceiveSuccess(LWM2M.Operation.R_REGISTER));
             String registrationEndpoint = registrationService.registerClientProxy(clientProxy, registrationInfo);
             createUpdateCoapResource(clientProxy, registrationEndpoint);
 
@@ -34,12 +40,13 @@ public class CoapRegistrationResource extends CoapResource {
 
             exchange.setLocationPath("/rd/" + clientProxy.getRegistrationEndpoint());
             exchange.respond(CoAP.ResponseCode.CREATED);
+            stats.addEvent(clientProxy, Event.uplinkResponseSendSuccess(LWM2M.Operation.R_REGISTER));
             clientProxy.onRegister(clientProxy);
         }
     }
 
     private void createUpdateCoapResource(ClientProxyImpl clientProxy, String registrationEndpoint) {
-        CoapUpdateResource resource = new CoapUpdateResource(registrationEndpoint);
+        CoapUpdateResource resource = new CoapUpdateResource(registrationEndpoint, stats);
         resource.setRegistrationService(registrationService);
         resource.setRegistrationResource(this);
         resource.setClientProxy(clientProxy);

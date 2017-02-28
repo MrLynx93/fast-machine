@@ -3,9 +3,11 @@ package com.test.performance.coap.client;
 import com.agh.fastmachine.client.api.Client;
 import com.agh.fastmachine.client.api.CoapClientConf;
 
+import java.io.IOException;
+
 public class CoapTestClient extends AbstractCoapTestClient {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
         new CoapTestClient().test();
     }
 

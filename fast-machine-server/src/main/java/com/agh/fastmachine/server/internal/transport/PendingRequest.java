@@ -1,6 +1,7 @@
 package com.agh.fastmachine.server.internal.transport;
 
 import com.agh.fastmachine.server.api.listener.ObservationListener;
+import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.transport.stats.TimeoutException;
 
 import java.util.concurrent.TimeUnit;
@@ -9,6 +10,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class PendingRequest {
+    private ClientProxyImpl client;
     private Lock lock = new ReentrantLock();
     private Condition condition = lock.newCondition();
     private volatile int responseCount;
@@ -24,6 +26,11 @@ public class PendingRequest {
     public PendingRequest(Lwm2mRequest request) {
         this.request = request;
         this.responseCount = 0;
+    }
+
+    public PendingRequest(Lwm2mRequest request, ClientProxyImpl client) {
+        this(request);
+        this.client = client;
     }
 
     public String getToken() {
@@ -75,5 +82,9 @@ public class PendingRequest {
 
     public boolean isCompleted() {
         return responseCount > 0;
+    }
+
+    public ClientProxyImpl getClient() {
+        return client;
     }
 }

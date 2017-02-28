@@ -39,7 +39,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
     protected abstract void doSendRequest(ClientProxyImpl client, REQ request) throws Exception;
 
     public PendingRequest sendRequest(ClientProxyImpl client, REQ request) {
-        PendingRequest pendingRequest = new PendingRequest(request);
+        PendingRequest pendingRequest = new PendingRequest(request, client);
         pendingRequests.put(request.getToken(), pendingRequest);
         try {
             doSendRequest(client, request);
@@ -55,6 +55,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
         String token = response.getToken();
         PendingRequest pendingRequest = pendingRequests.get(token);
         Lwm2mRequest request = pendingRequest.getRequest();
+        stats.addEvent(pendingRequest.getClient(), Event.downlinkResponseReceiveSuccess(request.getOperation()));
 
         if (isNotify(request, response) && pendingRequest.isCompleted()) {
             observeHandlers.get(token).onNotify(response);

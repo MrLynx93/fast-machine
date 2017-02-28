@@ -173,14 +173,6 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
             }
             if (topic.getType().equals("res")) {
                 handleResponse(Lwm2mMqttResponse.fromMqtt(message, topic));
-
-                try {
-                    ClientProxyImpl client = registeredClients.get(topic.getClientId());
-                    stats.addEvent(client, Event.downlinkResponseReceiveSuccess(topic.getOperation()));
-                } catch (Exception e) {
-                    System.out.println("topic " + topic);
-                    e.printStackTrace();
-                }
             }
         }
 
