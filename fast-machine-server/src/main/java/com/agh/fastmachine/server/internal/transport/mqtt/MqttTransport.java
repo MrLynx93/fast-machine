@@ -76,7 +76,7 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
 
             mqttClient.connect(options);
             mqttClient.setCallback(mqttCallback);
-            mqttClient.setTimeToWait(2000);
+            mqttClient.setTimeToWait(5000);
             mqttClient.subscribe("lynx/br/req/+/+/" + configuration.getServerName(), configuration.getQos());
             mqttClient.subscribe("lynx/bw/res/+/+/" + configuration.getServerName() + "/#", configuration.getQos());
             mqttClient.subscribe("lynx/bd/res/+/+/" + configuration.getServerName(), configuration.getQos());

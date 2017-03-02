@@ -25,7 +25,7 @@ public abstract class AbstractTest {
     public static int TIMES = 100;
     public static int SERVERS_NUMBER = 1;
     public static int CLIENTS_NUMBER = 1;
-    public static int LIFETIME = 20;
+    public static int LIFETIME = 3600;
 
     static {
         try {

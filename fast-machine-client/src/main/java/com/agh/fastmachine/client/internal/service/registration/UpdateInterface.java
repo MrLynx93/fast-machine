@@ -80,12 +80,13 @@ public class UpdateInterface {
 
         private void sleepForLifetime() throws InterruptedException {
             Integer lifetime = serverInfoMap.get(server.shortServerId.getValue().value).lifetime;
-            if (lifetime != null && lifetime > 15) {
-                Thread.sleep((lifetime - 15) * 1000); // TODO tak samo jak w lynx-lwm2m
-            }
-            if (lifetime != null && lifetime < 15) {
-                Thread.sleep((lifetime - 1) * 1000);
-            }
+            Thread.sleep(lifetime / 2);
+//            if (lifetime != null && lifetime > 15) {
+//                Thread.sleep((lifetime - 15) * 1000); // TODO tak samo jak w lynx-lwm2m
+//            }
+//            if (lifetime != null && lifetime < 15) {
+//                Thread.sleep((lifetime - 1) * 1000);
+//            }
         }
     }
 
