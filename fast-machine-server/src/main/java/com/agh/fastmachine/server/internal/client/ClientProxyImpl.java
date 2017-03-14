@@ -6,6 +6,7 @@ import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
 import com.agh.fastmachine.server.api.model.ObjectTree;
 import com.agh.fastmachine.server.internal.transport.Transport;
+import org.eclipse.californium.core.network.Endpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,7 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
     private Date lastUpdateTime;
     private Date registerTime;
     private KeepaliveThread keepaliveThread;
+    private Endpoint clientEndpoint;
 
 
     public ClientProxyImpl(Server server, String endpointClientName) {
@@ -163,6 +165,14 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
         keepaliveThread.lock.lock();
         keepaliveThread.condition.signal();
         keepaliveThread.lock.unlock();
+    }
+
+    public void setClientEndpoint(Endpoint clientEndpoint) {
+        this.clientEndpoint = clientEndpoint;
+    }
+
+    public Endpoint getClientEndpoint() {
+        return clientEndpoint;
     }
 
     private class KeepaliveThread extends Thread {

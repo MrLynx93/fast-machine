@@ -40,6 +40,7 @@ public class CoapRegistrationResource extends CoapResource {
             createUpdateCoapResource(clientProxy, registrationEndpoint);
 
             clientProxy.setClientUrl(clientUrl);
+            clientProxy.setClientEndpoint(exchange.advanced().getEndpoint());
 
             exchange.setLocationPath("/rd/" + clientProxy.getRegistrationEndpoint());
             exchange.respond(CoAP.ResponseCode.CREATED);
