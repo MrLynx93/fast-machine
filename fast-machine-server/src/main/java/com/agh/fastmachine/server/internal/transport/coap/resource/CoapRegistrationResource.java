@@ -11,8 +11,11 @@ import com.agh.fastmachine.server.internal.transport.stats.Stats;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.server.resources.CoapExchange;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CoapRegistrationResource extends CoapResource {
+    private static final Logger LOG = LoggerFactory.getLogger(CoapRegistrationResource.class);
     private final RegistrationService registrationService;
     private final ClientManager clientManager;
     private Stats stats;
@@ -54,7 +57,9 @@ public class CoapRegistrationResource extends CoapResource {
     }
 
     private String getClientUrl(CoapExchange exchange) {
+//        exchange.getSourceAddress().isAnyLocalAddress()
         String clientAddress = exchange.getSourceAddress().getHostName();
+        LOG.error("Address {} is local: {}", exchange.getSourceAddress().getHostName(), exchange.getSourceAddress().isAnyLocalAddress());
         int clientPort = exchange.getSourcePort();
         return String.format("coap://%s:%d", clientAddress, clientPort);
     }

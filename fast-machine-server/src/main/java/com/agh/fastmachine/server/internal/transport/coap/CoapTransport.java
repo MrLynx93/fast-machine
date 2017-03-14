@@ -120,7 +120,7 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
 
         @Override
         public void onError() {
-
+            LOG.error("onError. Dunno what error. LOL");
         }
     }
 
