@@ -88,6 +88,8 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
     protected void doSendRequest(ClientProxyImpl client, Lwm2mCoapRequest request) throws Exception {
         CoapClient coapClient = new CoapClient(request.getCoapPath());
 
+        LOG.info("doSendRequest clientURL: " + client.getClientUrl());
+
         Request coapRequest = request.toCoapRequest();
         coapRequest.setURI(client.getClientUrl());
         coapClient.setEndpoint(endpoint);

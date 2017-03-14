@@ -46,7 +46,7 @@ public class PendingRequest {
     }
 
     public Lwm2mResponse waitForCompletion() throws TimeoutException {
-        return waitForCompletion(2, TimeUnit.SECONDS);
+        return waitForCompletion(5, TimeUnit.SECONDS);
     }
 
     public Lwm2mResponse waitForCompletion(long timeout, TimeUnit unit) throws TimeoutException {
