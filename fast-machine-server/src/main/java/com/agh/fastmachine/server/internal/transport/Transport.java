@@ -41,6 +41,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
     public PendingRequest sendRequest(ClientProxyImpl client, REQ request) {
         PendingRequest pendingRequest = new PendingRequest(request, client);
         pendingRequests.put(request.getToken(), pendingRequest);
+        LOG.error("before doSendRequest");
         try {
             doSendRequest(client, request);
         } catch (Exception e) {
@@ -90,6 +91,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
 
     private void doCreate(ClientProxyImpl client, ObjectInstanceProxy instance, REQ request) {
         PendingRequest pendingRequest = sendRequest(client, request);
+        LOG.error("after sendRequest");
         try {
             Lwm2mResponse response = pendingRequest.waitForCompletion();
             if (response.isSuccess()) {
