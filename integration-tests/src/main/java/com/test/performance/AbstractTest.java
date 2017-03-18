@@ -56,10 +56,10 @@ public abstract class AbstractTest {
                     int serverId = Integer.parseInt(server.getName().split("_")[1]);
                     TestInstanceProxy constantInstance = client.getObjectTree().getObjectForType(TestInstanceProxy.class).getInstance(0);
 
-                    TestInstanceProxy newInstance = newInstance(client, server);
-                    if (client.getStatus() == ClientProxyStatus.REGISTERED) {
-                        client.create(newInstance, serverId);
-                    }
+//                    TestInstanceProxy newInstance = newInstance(client, server);
+//                    if (client.getStatus() == ClientProxyStatus.REGISTERED) {
+//                        client.create(newInstance, serverId);
+//                    }
 
 //                    for (int i = 0; i < TIMES; i++) {
                     while (client.getStatus() == ClientProxyStatus.REGISTERED) {
@@ -67,8 +67,8 @@ public abstract class AbstractTest {
 
                         // 2. Write
                         if (client.getStatus() == ClientProxyStatus.REGISTERED) {
-                            newInstance.payload.setValue(new StringResourceValue(newPayload()));
-                            newInstance.payload.write();
+                            constantInstance.payload.setValue(new StringResourceValue(newPayload()));
+                            constantInstance.payload.write();
                         }
                         // 3. Read
 //                        if (client.getStatus() == ClientProxyStatus.REGISTERED) {
