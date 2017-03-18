@@ -37,6 +37,8 @@ public class RegistrationInterface {
         registerRequest.getOptions().setContentFormat(MediaTypeRegistry.APPLICATION_LINK_FORMAT);
         registerRequest.setPayload(createRegisterPayload().getBytes(Charset.forName("UTF-8")));
         registerRequest.setURI(createRegisterUri(server, security));
+        System.out.println("Client addr: " + client.getEndpoint().getAddress().getAddress().getHostAddress() + ":" + client.getEndpoint().getAddress().getPort());
+
         registerRequest.send(client.getEndpoint());
 
         InetSocketAddress clientAddress = new InetSocketAddress(registerRequest.getDestination(), registerRequest.getDestinationPort());
