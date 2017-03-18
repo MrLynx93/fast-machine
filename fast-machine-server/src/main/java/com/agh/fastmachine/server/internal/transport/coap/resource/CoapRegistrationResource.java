@@ -14,6 +14,8 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+
 public class CoapRegistrationResource extends CoapResource {
     private static final Logger LOG = LoggerFactory.getLogger(CoapRegistrationResource.class);
     private final RegistrationService registrationService;
@@ -58,11 +60,13 @@ public class CoapRegistrationResource extends CoapResource {
     }
 
     private String getClientUrl(CoapExchange exchange) {
+        InetSocketAddress peerAddress = new InetSocketAddress(exchange.getSourceAddress(), exchange.getSourcePort());
 //        exchange.getSourceAddress().isAnyLocalAddress()
 //        exchange.getSourceAddress().getHostAddress()
-        String clientAddress = exchange.getSourceAddress().getHostAddress();
-        LOG.error("Address {} is local: {}", exchange.getSourceAddress().getHostName(), exchange.getSourceAddress().isAnyLocalAddress());
+//        exchange.advanced().getRequest().getSource().getHostAddress()
+//        String clientAddress = exchange.getSourceAddress().getCanonicalHostName();
+        LOG.error("Address {} =====", peerAddress.getHostName());
         int clientPort = exchange.getSourcePort();
-        return String.format("coap://%s:%d", clientAddress, clientPort);
+        return String.format("coap://%s:%d", peerAddress.getHostName(), peerAddress.getPort());
     }
 }

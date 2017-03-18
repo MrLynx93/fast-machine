@@ -94,6 +94,7 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
 
         Request coapRequest = request.toCoapRequest();
         coapRequest.setURI(client.getClientUrl());
+//        coapClient.setURI()
         coapClient.setEndpoint(endpoint);
         coapClient.advanced(new RequestCacheHandler(request), coapRequest);
         stats.addEvent(client, Event.downlinkRequestSendSuccess(request.getOperation()));
