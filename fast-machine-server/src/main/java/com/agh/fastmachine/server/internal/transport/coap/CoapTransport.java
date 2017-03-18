@@ -96,7 +96,7 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
         coapRequest.setURI(client.getClientUrl());
 //        coapClient.setURI()
         coapClient.setEndpoint(endpoint);
-        coapClient.advanced(new RequestCacheHandler(request), coapRequest);
+        coapClient.advanced(new RequestCacheHandler(request, coapRequest), coapRequest);
         stats.addEvent(client, Event.downlinkRequestSendSuccess(request.getOperation()));
     }
 
@@ -107,13 +107,16 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
 
     private class RequestCacheHandler implements CoapHandler {
         private final Lwm2mCoapRequest request;
+        private final Request coapRequest;
 
-        public RequestCacheHandler(Lwm2mCoapRequest request) {
+        public RequestCacheHandler(Lwm2mCoapRequest request, Request coapRequest) {
             this.request = request;
+            this.coapRequest = coapRequest;
         }
 
         @Override
         public void onLoad(CoapResponse coapResponse) {
+            System.out.println("onLoad (response received)");
             coapResponse.advanced().setToken(request.getToken().getBytes());
             Lwm2mResponse response = Lwm2mCoapResponse.fromCoapResponse(coapResponse);
             handleResponse(response);
@@ -121,7 +124,7 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
 
         @Override
         public void onError() {
-            LOG.error("onError when sending fuckin downlink request");
+            LOG.error("onError when sending fuckin downlink request {}", coapRequest.getResponse().getCode());
         }
     }
 

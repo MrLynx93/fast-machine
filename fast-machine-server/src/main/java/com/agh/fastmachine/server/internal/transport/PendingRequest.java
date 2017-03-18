@@ -66,10 +66,12 @@ public class PendingRequest {
             lock.unlock();
         }
 
-        if (!success)
+        if (!success) {
+            System.out.println("no success sending....");
             throw new TimeoutException();
-        else
+        } else {
             return response;
+        }
     }
 
     public void complete(Lwm2mResponse response) {
