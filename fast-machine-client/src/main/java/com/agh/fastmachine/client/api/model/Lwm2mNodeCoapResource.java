@@ -55,11 +55,13 @@ public class Lwm2mNodeCoapResource extends CoapResource {
 
     @Override
     public void handlePUT(CoapExchange exchange) {
+        System.out.println("handlePUT. exchange port: " + exchange.getSourcePort());
         Lwm2mResponse lwm2mResponse;
         ServerObjectInstance resolve = getRequestingServer(exchange);
         if (exchange.getRequestOptions().getURIQueryCount() != 0) {
             lwm2mResponse = node.handleWriteAttributes(new Lwm2mWriteAttributeRequest(exchange, resolve));
         } else {
+            System.out.println("handleWRITE");
             lwm2mResponse = node.handleWrite(new Lwm2mContentRequest(exchange, resolve));
         }
         lwm2mResponse.respond(exchange);
