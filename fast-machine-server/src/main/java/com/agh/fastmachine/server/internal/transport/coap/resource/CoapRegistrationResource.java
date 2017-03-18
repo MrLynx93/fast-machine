@@ -59,7 +59,8 @@ public class CoapRegistrationResource extends CoapResource {
 
     private String getClientUrl(CoapExchange exchange) {
 //        exchange.getSourceAddress().isAnyLocalAddress()
-        String clientAddress = exchange.getSourceAddress().getHostName();
+//        exchange.getSourceAddress().getHostAddress()
+        String clientAddress = exchange.getSourceAddress().getHostAddress();
         LOG.error("Address {} is local: {}", exchange.getSourceAddress().getHostName(), exchange.getSourceAddress().isAnyLocalAddress());
         int clientPort = exchange.getSourcePort();
         return String.format("coap://%s:%d", clientAddress, clientPort);
