@@ -16,6 +16,13 @@ public class ServerObjectResolver {
     private Map<Integer, ServerObjectInstance> serversByShortServerId = new HashMap<>();
 
     public ServerObjectInstance resolveServerObject(CoapExchange exchange) {
+        System.out.println("AAAAAAAAAAAAAAAAA");
+        for (SocketAddress socketAddress : servers.keySet()) {
+            System.out.println("Addr " + socketAddress);
+        }
+        System.out.println("BBBBBBBBBBBBBBBB");
+        System.out.println(new InetSocketAddress(exchange.getSourceAddress(), exchange.getSourcePort()));
+
         return servers.get(new InetSocketAddress(exchange.getSourceAddress(), exchange.getSourcePort()));
     }
 
