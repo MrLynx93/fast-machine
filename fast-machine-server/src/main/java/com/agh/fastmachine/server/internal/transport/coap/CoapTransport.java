@@ -93,7 +93,7 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
         LOG.info("doSendRequest clientURL: {}", client.getClientUrl());
 
         Request coapRequest = request.toCoapRequest();
-        coapRequest.setURI("coap://94.254.147.9:29001");
+        coapRequest.setURI(client.getClientUrl());
         coapClient.setEndpoint(endpoint);
         coapClient.advanced(new RequestCacheHandler(request), coapRequest);
         stats.addEvent(client, Event.downlinkRequestSendSuccess(request.getOperation()));
@@ -120,7 +120,7 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
 
         @Override
         public void onError() {
-            LOG.error("onError. Dunno what error. LOL");
+
         }
     }
 
