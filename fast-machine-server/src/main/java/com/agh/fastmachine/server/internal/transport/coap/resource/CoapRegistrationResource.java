@@ -61,14 +61,6 @@ public class CoapRegistrationResource extends CoapResource {
 
     private String getClientUrl(CoapExchange exchange) {
         InetSocketAddress peerAddress = new InetSocketAddress(exchange.getSourceAddress(), exchange.getSourcePort());
-//        exchange.getSourceAddress().isAnyLocalAddress()
-//        exchange.getSourceAddress().getHostAddress()
-//        exchange.advanced().getRequest().getSource().getHostAddress()
-//        String clientAddress = exchange.getSourceAddress().getCanonicalHostName();
-        LOG.error("Address {} =====", peerAddress.getHostName());
-        int clientPort = exchange.getSourcePort();
         return String.format("coap://%s:%d", peerAddress.getHostName(), peerAddress.getPort());
-//        return String.format("coap://%s:%d", "localhost", 29001);
-//        return String.format("coap://%s:%d", "34.252.159.36", 29001);
     }
 }

@@ -1,6 +1,5 @@
 package com.agh.fastmachine.server.internal.transport.coap;
 
-import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.parser.RegistrationInfoParser;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
@@ -14,11 +13,8 @@ import com.agh.fastmachine.server.internal.transport.coap.message.Lwm2mCoapRespo
 import com.agh.fastmachine.server.internal.transport.coap.resource.CoapBootstrapResource;
 import com.agh.fastmachine.server.internal.transport.coap.resource.CoapRegistrationResource;
 import com.agh.fastmachine.server.internal.transport.stats.Event;
-import org.eclipse.californium.core.CoapClient;
-import org.eclipse.californium.core.CoapHandler;
-import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.CoapServer;
-import org.eclipse.californium.core.coap.MessageObserver;
+import org.eclipse.californium.core.coap.MessageObserverAdapter;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.network.CoapEndpoint;
@@ -31,7 +27,6 @@ import org.eclipse.californium.scandium.dtls.cipher.CipherSuite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
@@ -88,21 +83,11 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
 
     @Override // TODO TIMEOUT
     protected void doSendRequest(ClientProxyImpl client, Lwm2mCoapRequest request) throws Exception {
-        LOG.info("inside doSendRequest");
-
-        CoapClient coapClient = new CoapClient(request.getCoapPath());
-
-        LOG.info("doSendRequest clientURL: {}", client.getClientUrl());
-
-
         Request coapRequest = request.toCoapRequest();
         coapRequest.setURI(client.getClientUrl() + request.getCoapPath());
-        coapRequest.addMessageObserver(new RequestCacheMessageObserver(request, coapRequest));
+        coapRequest.addMessageObserver(new RequestCacheMessageObserver(request));
         endpoint.sendRequest(coapRequest);
 
-////        coapClient.setURI()
-//        coapClient.setEndpoint(endpoint);
-//        coapClient.advanced(new RequestCacheHandler(request, coapRequest), coapRequest);
         stats.addEvent(client, Event.downlinkRequestSendSuccess(request.getOperation()));
     }
 
@@ -111,73 +96,20 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
         return (request.getOperation() == LWM2M.Operation.I_OBSERVE && response.isSuccess());
     }
 
-    private class RequestCacheMessageObserver implements MessageObserver {
+    private class RequestCacheMessageObserver extends MessageObserverAdapter {
         private final Lwm2mCoapRequest request;
-        private final Request coapRequest;
 
-        RequestCacheMessageObserver(Lwm2mCoapRequest request, Request coapRequest) {
+        RequestCacheMessageObserver(Lwm2mCoapRequest request) {
             this.request = request;
-            this.coapRequest = coapRequest;
-        }
-
-        @Override
-        public void onRetransmission() {
-            System.out.println("public void onRetransmission() {");
         }
 
         @Override
         public void onResponse(Response coapResponse) {
-            System.out.println("public void onResponse(Response response) {");
-
-            System.out.println("onLoad (response received)");
             coapResponse.setToken(request.getToken().getBytes());
             Lwm2mResponse response = Lwm2mCoapResponse.fromCoapResponse(coapResponse);
             handleResponse(response);
         }
 
-        @Override
-        public void onAcknowledgement() {
-            System.out.println("public void onAcknowledgement() {");
-        }
-
-        @Override
-        public void onReject() {
-            System.out.println("public void onReject() {");
-        }
-
-        @Override
-        public void onTimeout() {
-            System.out.println("public void onTimeout() {");
-        }
-
-        @Override
-        public void onCancel() {
-            System.out.println("public void onCancel() {");
-        }
-    }
-
-    private class RequestCacheHandler implements CoapHandler {
-        private final Lwm2mCoapRequest request;
-        private final Request coapRequest;
-
-        public RequestCacheHandler(Lwm2mCoapRequest request, Request coapRequest) {
-            this.request = request;
-            this.coapRequest = coapRequest;
-        }
-
-        @Override
-        public void onLoad(CoapResponse coapResponse) {
-//            System.out.println("onLoad (response received)");
-//            coapResponse.advanced().setToken(request.getToken().getBytes());
-//            Lwm2mResponse response = Lwm2mCoapResponse.fromCoapResponse(coapResponse);
-//            handleResponse(response);
-        }
-
-        @Override
-        public void onError() {
-//            coapRequest.getScheme()
-            LOG.error("onError when sending fuckin downlink request {}", coapRequest.getResponse().getCode());
-        }
     }
 
     public RegistrationInfo parseRegistrationInfo(Request request) {
