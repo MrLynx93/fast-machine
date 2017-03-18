@@ -28,8 +28,6 @@ public class Lwm2mNodeCoapResource extends CoapResource {
 
     @Override
     public void handleGET(CoapExchange exchange) {
-        System.out.println("handleGET. exchange port: " + exchange.getSourcePort());
-
         ServerObjectInstance server = getRequestingServer(exchange);
         Lwm2mRequest request = new Lwm2mRequest(exchange, server);
         Lwm2mResponse response;
@@ -57,13 +55,11 @@ public class Lwm2mNodeCoapResource extends CoapResource {
 
     @Override
     public void handlePUT(CoapExchange exchange) {
-        System.out.println("handlePUT. exchange port: " + exchange.getSourcePort());
         Lwm2mResponse lwm2mResponse;
         ServerObjectInstance resolve = getRequestingServer(exchange);
         if (exchange.getRequestOptions().getURIQueryCount() != 0) {
             lwm2mResponse = node.handleWriteAttributes(new Lwm2mWriteAttributeRequest(exchange, resolve));
         } else {
-            System.out.println("handleWRITE");
             lwm2mResponse = node.handleWrite(new Lwm2mContentRequest(exchange, resolve));
         }
         lwm2mResponse.respond(exchange);
@@ -71,7 +67,6 @@ public class Lwm2mNodeCoapResource extends CoapResource {
 
     @Override
     public void handlePOST(CoapExchange exchange) {
-        System.out.println("handlePOST. exchange port: " + exchange.getSourcePort());
         Lwm2mResponse lwm2mResponse;
         ServerObjectInstance resolve = getRequestingServer(exchange);
         if (exchange.getRequestOptions().getURIPathCount() == 3) { // - /0/0/0 - resourcevalue path, therefore handle executelwm2mResponse = node.handleExecute();

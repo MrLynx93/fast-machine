@@ -41,7 +41,6 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
     public PendingRequest sendRequest(ClientProxyImpl client, REQ request) {
         PendingRequest pendingRequest = new PendingRequest(request, client);
         pendingRequests.put(request.getToken(), pendingRequest);
-        LOG.error("before doSendRequest");
         try {
             doSendRequest(client, request);
         } catch (Exception e) {
