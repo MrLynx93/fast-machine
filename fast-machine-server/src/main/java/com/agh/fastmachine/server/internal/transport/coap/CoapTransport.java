@@ -18,7 +18,9 @@ import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapHandler;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.CoapServer;
+import org.eclipse.californium.core.coap.MessageObserver;
 import org.eclipse.californium.core.coap.Request;
+import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.Endpoint;
 import org.eclipse.californium.core.network.config.NetworkConfig;
@@ -88,21 +90,70 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
     protected void doSendRequest(ClientProxyImpl client, Lwm2mCoapRequest request) throws Exception {
         LOG.info("inside doSendRequest");
 
-        CoapClient coapClient = new CoapClient(request.getCoapPath());
+//        CoapClient coapClient = new CoapClient(request.getCoapPath());
 
         LOG.info("doSendRequest clientURL: {}", client.getClientUrl());
 
+
         Request coapRequest = request.toCoapRequest();
         coapRequest.setURI(client.getClientUrl());
-//        coapClient.setURI()
-        coapClient.setEndpoint(endpoint);
-        coapClient.advanced(new RequestCacheHandler(request, coapRequest), coapRequest);
+        coapRequest.addMessageObserver(new RequestCacheMessageObserver(request, coapRequest));
+        endpoint.sendRequest(coapRequest);
+
+////        coapClient.setURI()
+//        coapClient.setEndpoint(endpoint);
+//        coapClient.advanced(new RequestCacheHandler(request, coapRequest), coapRequest);
         stats.addEvent(client, Event.downlinkRequestSendSuccess(request.getOperation()));
     }
 
     @Override
     protected boolean isNotify(Lwm2mRequest request, Lwm2mResponse response) {
         return (request.getOperation() == LWM2M.Operation.I_OBSERVE && response.isSuccess());
+    }
+
+    private class RequestCacheMessageObserver implements MessageObserver {
+        private final Lwm2mCoapRequest request;
+        private final Request coapRequest;
+
+        RequestCacheMessageObserver(Lwm2mCoapRequest request, Request coapRequest) {
+            this.request = request;
+            this.coapRequest = coapRequest;
+        }
+
+        @Override
+        public void onRetransmission() {
+            System.out.println("public void onRetransmission() {");
+        }
+
+        @Override
+        public void onResponse(Response coapResponse) {
+            System.out.println("public void onResponse(Response response) {");
+
+            System.out.println("onLoad (response received)");
+            coapResponse.setToken(request.getToken().getBytes());
+            Lwm2mResponse response = Lwm2mCoapResponse.fromCoapResponse(coapResponse);
+            handleResponse(response);
+        }
+
+        @Override
+        public void onAcknowledgement() {
+            System.out.println("public void onAcknowledgement() {");
+        }
+
+        @Override
+        public void onReject() {
+            System.out.println("public void onReject() {");
+        }
+
+        @Override
+        public void onTimeout() {
+            System.out.println("public void onTimeout() {");
+        }
+
+        @Override
+        public void onCancel() {
+            System.out.println("public void onCancel() {");
+        }
     }
 
     private class RequestCacheHandler implements CoapHandler {
@@ -116,14 +167,15 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
 
         @Override
         public void onLoad(CoapResponse coapResponse) {
-            System.out.println("onLoad (response received)");
-            coapResponse.advanced().setToken(request.getToken().getBytes());
-            Lwm2mResponse response = Lwm2mCoapResponse.fromCoapResponse(coapResponse);
-            handleResponse(response);
+//            System.out.println("onLoad (response received)");
+//            coapResponse.advanced().setToken(request.getToken().getBytes());
+//            Lwm2mResponse response = Lwm2mCoapResponse.fromCoapResponse(coapResponse);
+//            handleResponse(response);
         }
 
         @Override
         public void onError() {
+//            coapRequest.getScheme()
             LOG.error("onError when sending fuckin downlink request {}", coapRequest.getResponse().getCode());
         }
     }

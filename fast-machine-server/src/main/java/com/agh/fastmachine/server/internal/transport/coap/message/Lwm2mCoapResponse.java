@@ -6,6 +6,7 @@ import com.agh.fastmachine.server.internal.transport.coap.COAP;
 import lombok.Builder;
 import lombok.Data;
 import org.eclipse.californium.core.CoapResponse;
+import org.eclipse.californium.core.coap.Response;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class Lwm2mCoapResponse extends Lwm2mResponse {
         this.token = token;
     }
 
-    public static Lwm2mCoapResponse fromCoapResponse(CoapResponse coapResponse) {
+    public static Lwm2mCoapResponse fromCoapResponse(Response coapResponse) {
         List<String> locationPath = coapResponse.getOptions().getLocationPath();
         Integer createdInstanceId = locationPath.size() > 0 ? Integer.parseInt(locationPath.get(1)) : null;
 
@@ -29,7 +30,7 @@ public class Lwm2mCoapResponse extends Lwm2mResponse {
                 COAP.getResponseCode(coapResponse.getCode()),
                 coapResponse.getPayload(),
                 createdInstanceId,
-                new String(coapResponse.advanced().getToken())
+                new String(coapResponse.getToken())
         );
     }
 }
