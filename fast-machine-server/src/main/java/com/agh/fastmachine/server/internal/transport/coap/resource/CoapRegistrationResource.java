@@ -67,6 +67,7 @@ public class CoapRegistrationResource extends CoapResource {
 //        String clientAddress = exchange.getSourceAddress().getCanonicalHostName();
         LOG.error("Address {} =====", peerAddress.getHostName());
         int clientPort = exchange.getSourcePort();
+//        return String.format("coap://%s:%d", "localhost", 29001);
         return String.format("coap://%s:%d", "34.252.159.36", 29001);
     }
 }
