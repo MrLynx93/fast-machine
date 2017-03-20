@@ -33,8 +33,8 @@ public class CreateIT {
         String a = "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
         // Create new instance with ID 100
         TestInstanceProxy newInstance = new TestInstanceProxy();
-        newInstance.clientId.setValue(new StringResourceValue("kurwa"));
-        newInstance.serverId.setValue(new StringResourceValue("gowno"));
+        newInstance.clientId.setValue(new StringResourceValue("abc"));
+        newInstance.serverId.setValue(new StringResourceValue("def"));
         newInstance.payload.setValue(new StringResourceValue(a + a + a + a + a + a + a + a + a +a + a + a + a + a + a + a + a + a +a + a + a + a + a + a + a + a + a + a + a + a + a + a));
         clientProxy.create(newInstance, 100);
 
