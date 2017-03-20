@@ -18,10 +18,10 @@ import java.util.concurrent.Executors;
 abstract class AbstractTest {
     private static final char[] CHARSET = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
     private static final int PAYLOAD_LENGTH = 1000;
-    static final int TIMES = 100;
+    static final int TIMES = 1000;
     static final int SERVERS_NUMBER = 1;
     static final int CLIENTS_NUMBER = 1;
-    static final int LIFETIME = 20;
+    static final int LIFETIME = 3600;
 
     ExecutorService executor = Executors.newFixedThreadPool(SERVERS_NUMBER * CLIENTS_NUMBER);
     CountDownLatch deregisteredCount = new CountDownLatch(SERVERS_NUMBER * CLIENTS_NUMBER);
