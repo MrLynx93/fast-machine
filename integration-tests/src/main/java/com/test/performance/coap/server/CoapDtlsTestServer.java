@@ -16,12 +16,12 @@ public class CoapDtlsTestServer extends AbstractCoapTestServer {
     Server configureServer(int i) {
         ServerConfiguration configuration = new ServerConfiguration();
         configuration.setTransport(ServerConfiguration.TRASPORT_COAP);
-        configuration.setName("server_" + (1900 + i));
+        configuration.setName("server_" + (19000 + i));
         configuration.addObjectSupport(TestInstanceProxy.class);
         configuration.addObjectSupport(PingInstanceProxy.class);
 
         CoapConfiguration transportConfiguration = new CoapConfiguration();
-        transportConfiguration.setPort(1900 + i);
+        transportConfiguration.setPort(19000 + i);
         transportConfiguration.setDtls(true);
         transportConfiguration.setKeyStorePassword("123456");
         transportConfiguration.setKeyStoreLocation("keyStore.jks");

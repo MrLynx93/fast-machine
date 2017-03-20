@@ -14,12 +14,12 @@ public class CoapDtlsTestClient extends AbstractCoapTestClient {
     @Override
     Client configureClient(int i) {
         CoapClientConf configuration = new CoapClientConf();
-        configuration.setPort(2900 + i);
+        configuration.setPort(29000 + i);
         configuration.setDtls(true);
         configuration.setKeyStorePassword("123456");
         configuration.setKeyStoreLocation("keyStore.jks");
         configuration.setTrustStorePassword("123456");
         configuration.setTrustStoreLocation("trustStore.jks");
-        return new Client("client_" + (2900 + i), factoryBootstrap(i), configuration);
+        return new Client("client_" + (29000 + i), factoryBootstrap(i), configuration);
     }
 }
