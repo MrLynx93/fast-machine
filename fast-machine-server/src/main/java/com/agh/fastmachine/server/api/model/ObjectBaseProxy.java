@@ -46,6 +46,10 @@ public class ObjectBaseProxy<T extends ObjectInstanceProxy> extends ObjectNodePr
         transport.read(clientProxy, this);
     }
 
+    public void readAll() {
+        transport.readAll(clientProxy.getServer(), this);
+    }
+
     public void discover() {
         transport.discover(clientProxy, this);
     }

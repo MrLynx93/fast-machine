@@ -68,7 +68,7 @@ public class RegistrationService {
         return ((CoapTransport)server.internal().getTransportLayer()).parseRegistrationInfo(request);
     }
 
-    private String getNextUpdateUrl() {
+    private synchronized String getNextUpdateUrl() {
         return "node" + t++;
     }
 

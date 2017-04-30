@@ -1,5 +1,7 @@
 package com.agh.fastmachine.server.internal.transport.mqtt;
 
+import com.agh.fastmachine.server.api.Server;
+import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.internal.client.ClientManager;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.service.BootstrapService;
@@ -249,6 +251,11 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
             stats.addEvent(clientProxy, Event.uplinkResponseSendTimeout(response.getTopic().getOperation()));
             LOG.error("Couldn't send response to {}", request);
         }
+    }
+
+    @Override
+    public void readAll(Server server, ObjectBaseProxy<?> object) {
+        // TODO
     }
 
     public RegistrationInfo parseRegistrationInfo(Lwm2mMqttRegisterRequest request) {

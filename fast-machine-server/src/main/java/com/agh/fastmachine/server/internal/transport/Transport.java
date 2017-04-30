@@ -5,6 +5,7 @@ import com.agh.fastmachine.core.api.model.resourcevalue.OpaqueResourceValue;
 import com.agh.fastmachine.core.api.model.resourcevalue.ResourceValue;
 import com.agh.fastmachine.core.internal.parser.ReadParser;
 import com.agh.fastmachine.core.internal.parser.WriteAttributesParser;
+import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.listener.ObservationListener;
 import com.agh.fastmachine.server.api.model.*;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
@@ -260,6 +261,10 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
             stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
             LOG.error("Didn't receive response for {}", request);
         }
+    }
+
+    public void readAll(Server server, ObjectBaseProxy<?> object) {
+        throw new UnsupportedOperationException("can't read all on coap");
     }
 
     public void read(ClientProxyImpl client, ObjectInstanceProxy instance) {

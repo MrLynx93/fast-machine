@@ -10,6 +10,7 @@ import java.util.Random;
 public abstract class RequestBuilder<REQ extends Lwm2mRequest> {
     private static final char[] CHARSET = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
     private static final int TOKEN_LENGTH = 8;
+    private static SecureRandom secureRandom = new SecureRandom();
 
     public abstract REQ buildCreateRequest(ObjectInstanceProxy instance, int id);
     public abstract REQ buildCreateRequest(ObjectInstanceProxy instance);
@@ -46,8 +47,8 @@ public abstract class RequestBuilder<REQ extends Lwm2mRequest> {
         return LWM2M.ContentType.PLAIN_TEXT;
     }
 
-    public String generateToken() {
-        Random random = new SecureRandom();
+    public synchronized String generateToken() {
+        Random random = secureRandom;
         char[] result = new char[TOKEN_LENGTH];
         for (int i = 0; i < result.length; i++) {
             // picks a random index out of character set > random character

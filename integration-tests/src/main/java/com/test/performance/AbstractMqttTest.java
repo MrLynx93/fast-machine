@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-abstract class AbstractMqttTest extends AbstractTest {
+public abstract class AbstractMqttTest extends AbstractTest {
     public static final int CREATE = 1 << 4;
     public static final int READ = 1;
     public static final int WRITE = 1 << 1;
@@ -42,9 +42,9 @@ abstract class AbstractMqttTest extends AbstractTest {
         System.exit(0);
     }
 
-    abstract BootstrapServer configureBootstrapServer(List<Server> servers);
+    public abstract BootstrapServer configureBootstrapServer(List<Server> servers);
 
-    abstract Server configureServer(int number);
+    public abstract Server configureServer(int number);
 
     BootstrapSequence configureBootstrapSequence(List<Server> servers) {
         BootstrapSequence sequence = new BootstrapSequence()

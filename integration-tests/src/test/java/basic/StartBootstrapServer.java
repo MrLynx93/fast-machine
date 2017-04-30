@@ -18,7 +18,7 @@ import java.util.*;
 public class StartBootstrapServer {
     private static final boolean TLS = false;
     private static final int LIFETIME = 10;
-    private static final String BROKER_ADDRESS = "localhost:8883"; //TODO
+    private static final String BROKER_ADDRESS = "34.250.196.139:1883"; //TODO
     private static final String BOOTSTRAP_SERVER_NAME = "bootstrap-server";
     private static final List<ServerData> androidServers = new ArrayList<>();
     private static final List<ServerData> localServers = new ArrayList<>();
@@ -69,9 +69,10 @@ public class StartBootstrapServer {
             inst.shortServerId.setValue(new IntegerResourceValue(server.shortId));
             inst.binding.setValue(new StringResourceValue("T"));
             inst.lifetime.setValue(new IntegerResourceValue(LIFETIME));
+            inst.storeNotifications.setValue(new BooleanResourceValue(false));
             serverInstances.put(server.shortId, inst);
         }
-        return new ObjectBaseProxy<>(0, serverInstances);
+        return new ObjectBaseProxy<>(1, serverInstances);
     }
 
     private static ObjectBaseProxy<SecurityObjectInstanceProxy> prepareSecurityObject(List<ServerData> servers) {

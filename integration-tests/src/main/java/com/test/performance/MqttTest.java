@@ -34,7 +34,7 @@ public class MqttTest extends AbstractMqttTest {
     }
 
     @Override
-    BootstrapServer configureBootstrapServer(List<Server> servers) {
+    public BootstrapServer configureBootstrapServer(List<Server> servers) {
         MqttConfiguration mqttConfiguration = new MqttConfiguration();
         mqttConfiguration.setQos(0);
         mqttConfiguration.setBrokerAddress(BROKER_ADDRESS);

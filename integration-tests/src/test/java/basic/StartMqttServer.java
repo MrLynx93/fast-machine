@@ -4,6 +4,7 @@ import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.ServerConfiguration;
 import com.agh.fastmachine.server.api.listener.RegistrationListener;
+import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.transport.TransportConfiguration;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
@@ -16,7 +17,7 @@ import java.util.concurrent.Executors;
 
 public class StartMqttServer {
     private static final boolean TLS = false;
-    private static final String BROKER_ADDRESS = "TODO"; //TODO
+    private static final String BROKER_ADDRESS = "34.250.196.139:1883"; //TODO
     private static final String SERVER_NAME = "main_server_1";
 
     private static ExecutorService executor = Executors.newFixedThreadPool(2);
@@ -26,8 +27,19 @@ public class StartMqttServer {
      *
      */
     private static void handleClient(ClientProxyImpl client) {
+        System.out.println("no wreszcie");
+        for (int i = 0; i < 100; i++) {
+            ObjectBaseProxy<AndroidUtilsInstanceProxy> exampleObj = client.getObjectTree().getObjectForType(AndroidUtilsInstanceProxy.class);
+            AndroidUtilsInstanceProxy instance = exampleObj.getInstance(0);
+            instance.vibrate.execute("");
 
-
+            try {
+                Thread.sleep(10000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println(i);
+        }
     }
 
     public static void main(String[] args) {
@@ -38,6 +50,7 @@ public class StartMqttServer {
 
     private static ServerConfiguration configureServer() {
         ServerConfiguration configuration = new ServerConfiguration();
+        configuration.setName(SERVER_NAME);
         configuration.addObjectSupport(AndroidUtilsInstanceProxy.class);
         configuration.addObjectSupport(ExampleMqttInstanceProxy.class);
         configuration.addObjectSupport(PingInstanceProxy.class);

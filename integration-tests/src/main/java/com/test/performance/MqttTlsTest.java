@@ -18,7 +18,7 @@ public class MqttTlsTest extends AbstractMqttTest {
     }
 
     @Override
-    Server configureServer(int number) {
+    public Server configureServer(int number) {
         ServerConfiguration configuration = new ServerConfiguration();
         configuration.setTransport(ServerConfiguration.TRASPORT_MQTT);
         configuration.setName("server_" + number);
@@ -35,7 +35,7 @@ public class MqttTlsTest extends AbstractMqttTest {
     }
 
     @Override
-    BootstrapServer configureBootstrapServer(List<Server> servers) {
+    public BootstrapServer configureBootstrapServer(List<Server> servers) {
         MqttConfiguration mqttConfiguration = new MqttConfiguration();
         mqttConfiguration.setQos(1);
         mqttConfiguration.setBrokerAddress(PUBLIC_BROKER_ADDRESS);
