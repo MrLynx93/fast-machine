@@ -1,8 +1,8 @@
-package com.test.client.coap;
+package com.test.client;
 
 import com.agh.fastmachine.client.api.Client;
-import com.test.server.Tests;
-import com.test.server.Utils;
+import com.test.Tests;
+import com.test.Utils;
 
 import java.util.concurrent.CountDownLatch;
 

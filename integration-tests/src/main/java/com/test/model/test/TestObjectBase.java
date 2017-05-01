@@ -1,4 +1,4 @@
-package com.test.performance.model;
+package com.test.model.test;
 
 import com.agh.fastmachine.client.api.model.ObjectBase;
 import com.agh.fastmachine.core.api.model.annotation.Lwm2mObject;

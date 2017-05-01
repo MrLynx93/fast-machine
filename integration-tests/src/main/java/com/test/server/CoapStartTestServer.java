@@ -1,16 +1,15 @@
-package com.test.server.mqtt;
+package com.test.server;
 
 import com.agh.fastmachine.server.api.Server;
-import com.agh.fastmachine.server.bootstrap.BootstrapServer;
-import com.test.server.Tests;
-import com.test.server.Utils;
+import com.test.Tests;
+import com.test.Utils;
 
 import java.util.concurrent.CountDownLatch;
 
-public class MqttStartTestServer {
+public class CoapStartTestServer {
     private static CountDownLatch registerCount;
     private static CountDownLatch deregisterCount;
-    private static boolean tls;
+    private static boolean dtls;
     private static int clientsNumber;
 
     public static void main(String[] args) throws InterruptedException {
@@ -18,16 +17,12 @@ public class MqttStartTestServer {
             return;
         }
         clientsNumber = Integer.parseInt(args[0]);
-        tls = args.length == 2 && args[1].equals("tls");
+        dtls = args.length == 2 && args[1].equals("dtls");
         registerCount = new CountDownLatch(clientsNumber);
         deregisterCount = new CountDownLatch(clientsNumber);
 
-        // Start bootstrap server
-        BootstrapServer bootstrapServer = Utils.MQTT.configureBootstrapServer(tls);
-        bootstrapServer.start();
-
         // Start server
-        Server server = Utils.MQTT.configureServer(tls);
+        Server server = Utils.CoAP.configureServer(dtls);
         server.setRegistrationListener(Utils.counterListener(registerCount, deregisterCount));
         server.start();
 
@@ -35,10 +30,11 @@ public class MqttStartTestServer {
         System.out.println("You should now run all clients.");
         registerCount.await();
         if (clientsNumber > 1) {
-            Tests.testMqttBroadcast(server);
+            Tests.testCoapBroadcast(server);
         } else {
-            Tests.testMqtt(server);
+            Tests.testCoap(server);
         }
+
 
         // Wait for deregister, then exit
         deregisterCount.await();

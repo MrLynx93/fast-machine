@@ -1,4 +1,4 @@
-package com.test.performance.model;
+package com.test.model.test;
 
 import com.agh.fastmachine.client.api.model.ObjectInstance;
 import com.agh.fastmachine.client.api.model.ObjectResource;
@@ -8,7 +8,6 @@ import com.agh.fastmachine.core.api.model.annotation.Lwm2mResource;
 import com.agh.fastmachine.core.api.model.resourcevalue.StringResourceValue;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.agh.fastmachine.core.api.model.Operations.READ;
 import static com.agh.fastmachine.core.api.model.Operations.WRITE;

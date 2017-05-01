@@ -1,10 +1,10 @@
-package com.test.server;
+package com.test;
 
 import com.agh.fastmachine.core.api.model.resourcevalue.StringResourceValue;
 import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
-import com.test.performance.model.TestInstanceProxy;
+import com.test.model.test.TestInstanceProxy;
 
 import java.security.SecureRandom;
 import java.util.Random;

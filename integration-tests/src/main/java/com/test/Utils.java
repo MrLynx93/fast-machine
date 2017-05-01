@@ -1,4 +1,4 @@
-package com.test.server;
+package com.test;
 
 import com.agh.fastmachine.client.api.Client;
 import com.agh.fastmachine.client.api.CoapClientConf;
@@ -22,9 +22,9 @@ import com.agh.fastmachine.server.bootstrap.BootstrapSequence;
 import com.agh.fastmachine.server.bootstrap.BootstrapServer;
 import com.agh.fastmachine.server.internal.transport.coap.CoapConfiguration;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
-import com.test.performance.model.TestInstanceProxy;
-import com.test.performance.model.TestObjectBase;
-import com.test.performance.model.TestObjectInstance;
+import com.test.model.test.TestInstanceProxy;
+import com.test.model.test.TestObjectBase;
+import com.test.model.test.TestObjectInstance;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;

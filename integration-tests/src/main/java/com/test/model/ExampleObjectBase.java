@@ -1,4 +1,4 @@
-package com.test.util.model;
+package com.test.model;
 
 
 import com.agh.fastmachine.client.api.model.ObjectBase;
