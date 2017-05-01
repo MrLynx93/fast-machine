@@ -34,7 +34,11 @@ public class MqttStartTestServer {
         // Wait for register all clients, then do all test
         System.out.println("You should now run all clients.");
         registerCount.await();
-        Tests.testMqtt(server);
+        if (clientsNumber > 1) {
+            Tests.testMqttBroadcast(server);
+        } else {
+            Tests.testMqtt(server);
+        }
 
         // Wait for deregister, then exit
         deregisterCount.await();

@@ -1,5 +1,6 @@
 package com.agh.fastmachine.server.api;
 
+import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
 import com.agh.fastmachine.server.internal.ObjectTreeCreator;
 import com.agh.fastmachine.server.internal.client.ClientManager;
 import com.agh.fastmachine.server.internal.service.BootstrapService;
@@ -52,13 +53,13 @@ public class Server {
         registrationService = new RegistrationService(this);
 
         if (configuration.getTransport() == ServerConfiguration.TRASPORT_COAP) {
-            transport = new CoapTransport();
+            transport = new CoapTransport(this);
             if (transportConfiguration == null) {
                 transportConfiguration = createCoapTransportConfiguration();
             }
             transportConfiguration.setServer(this);
         } else {
-            transport = new MqttTransport();
+            transport = new MqttTransport(this);
             ((MqttConfiguration)transportConfiguration).setServerName(name);
             transportConfiguration.setServer(this);
         }
@@ -68,6 +69,20 @@ public class Server {
     public void stop() {
         transport.stop();
     }
+
+    public void createAll(Server.InstanceCreator patternInstance) {
+        transport.createAll(this, patternInstance);
+    }
+
+    public void createAll(Server.InstanceCreator patternInstance, int id) {
+        transport.createAll(this, patternInstance, id);
+    }
+
+    @FunctionalInterface
+    public static interface InstanceCreator {
+        public ObjectInstanceProxy getNew();
+    }
+
 
     public void setConfiguration(ServerConfiguration configuration) {
         this.configuration = configuration;

@@ -5,6 +5,7 @@ import com.agh.fastmachine.core.api.model.resourcevalue.OpaqueResourceValue;
 import com.agh.fastmachine.core.api.model.resourcevalue.ResourceValue;
 import com.agh.fastmachine.core.internal.parser.ReadParser;
 import com.agh.fastmachine.core.internal.parser.WriteAttributesParser;
+import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.listener.ObservationListener;
 import com.agh.fastmachine.server.api.model.*;
@@ -25,13 +26,14 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
     private static final Logger LOG = LoggerFactory.getLogger(Transport.class);
     protected Map<String, ClientProxyImpl> registeredClients = new HashMap<>();
 
-    private final Map<String, PendingRequest> pendingRequests = new ConcurrentHashMap<>();
+    protected final Map<String, PendingRequest> pendingRequests = new ConcurrentHashMap<>();
     private final Map<String, ObserveHandler> observeHandlers = new ConcurrentHashMap<>();
     private final WriteAttributesParser writeAttributesParser = new WriteAttributesParser();
-    private final ReadParser readParser = new ServerReadParser();
+    protected final ReadParser readParser = new ServerReadParser();
     protected RequestBuilder<REQ> requestBuilder;
     public Stats stats = new Stats();
     protected T configuration;
+    protected Server server;
 
     public abstract void start(T configuration);
 
@@ -56,7 +58,12 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
         String token = response.getToken();
         PendingRequest pendingRequest = pendingRequests.get(token);
         Lwm2mRequest request = pendingRequest.getRequest();
-        stats.addEvent(pendingRequest.getClient(), Event.downlinkResponseReceiveSuccess(request.getOperation()));
+
+        if (pendingRequest.isBroadcast()) {
+            stats.addBroadcastEvent(server, Event.downlinkResponseReceiveSuccess(request.getOperation()));
+        } else {
+            stats.addEvent(pendingRequest.getClient(), Event.downlinkResponseReceiveSuccess(request.getOperation()));
+        }
 
         if (isNotify(request, response) && pendingRequest.isCompleted()) {
             observeHandlers.get(token).onNotify(response);
@@ -79,6 +86,10 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
 
     /********************  CREATE  ********************/
 
+    public abstract void createAll(Server server, Server.InstanceCreator instance);
+
+    public abstract void createAll(Server server, Server.InstanceCreator instance, int instanceId);
+
     public void create(ClientProxyImpl client, ObjectInstanceProxy instance) {
         REQ request = requestBuilder.buildCreateRequest(instance);
         doCreate(client, instance, request);
@@ -91,7 +102,6 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
 
     private void doCreate(ClientProxyImpl client, ObjectInstanceProxy instance, REQ request) {
         PendingRequest pendingRequest = sendRequest(client, request);
-        LOG.error("after sendRequest");
         try {
             Lwm2mResponse response = pendingRequest.waitForCompletion();
             if (response.isSuccess()) {
@@ -246,7 +256,13 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
 
     /********************  READ  ********************/
 
-    public void read(ClientProxyImpl client, ObjectBaseProxy<?> object) {
+    public abstract void readAll(Server server, ObjectBaseProxy<?> object);
+
+    public abstract void readAll(Server server, ObjectInstanceProxy instance);
+
+    public abstract void readAll(Server server, ObjectResourceProxy<?> resource);
+
+    public void read(ClientProxyImpl client, ObjectBaseProxy object) {
         REQ request = requestBuilder.buildReadRequest(object);
         PendingRequest pendingRequest = sendRequest(client, request);
 
@@ -254,17 +270,13 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
             Lwm2mResponse response = pendingRequest.waitForCompletion();
             if (response.isSuccess()) {
                 ObjectBaseProxy newValue = readParser.deserialize(object, response.getPayload());
-                object.internal().update(newValue);
+                ((ObjectBaseProxy<?>)object).internal().update(newValue);
                 LOG.debug("Read object: {}", object.getPath());
             }
         } catch (TimeoutException e) {
             stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
             LOG.error("Didn't receive response for {}", request);
         }
-    }
-
-    public void readAll(Server server, ObjectBaseProxy<?> object) {
-        throw new UnsupportedOperationException("can't read all on coap");
     }
 
     public void read(ClientProxyImpl client, ObjectInstanceProxy instance) {
@@ -329,6 +341,10 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
 
     /********************  WRITE  ********************/
 
+    public abstract void writeAll(Server server, ObjectInstanceProxy instance);
+
+    public abstract void writeAll(Server server, ObjectResourceProxy resource);
+
     public void write(ClientProxyImpl client, ObjectInstanceProxy instance) {
         REQ request = requestBuilder.buildWriteRequest(instance);
         PendingRequest pendingRequest = sendRequest(client, request);
@@ -359,9 +375,9 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
         }
     }
 
-    private void connectToRemote(ObjectInstanceProxy instance) {
+    protected void connectToRemote(ObjectInstanceProxy instance) {
         ClientProxyImpl client = (ClientProxyImpl) instance.getClientProxy();
-        client.getServer().internal().getObjectTreeCreator().connectToRemoteClient(instance, client); // TODO It doesn't look good
+        client.getServer().internal().getObjectTreeCreator().connectToRemoteClient(instance, client);
     }
 
     private boolean isCancelObserve(Lwm2mRequest request, Lwm2mResponse response) {

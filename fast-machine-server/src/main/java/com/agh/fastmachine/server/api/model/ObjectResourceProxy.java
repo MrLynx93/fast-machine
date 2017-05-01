@@ -13,7 +13,7 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
     private ObjectInstanceProxy instance;
     private T value;
     private Class<T> valueClass;
-    protected boolean isChanged = true;
+    public boolean isChanged = true;
     boolean isDeleted = false;
     private String name;
 
@@ -71,12 +71,29 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
         transport.read(clientProxy, this);
     }
 
+    public void readAll() {
+        if (isDeleted) {
+            throw new ObjectDeletedException();
+        }
+        transport.readAll(clientProxy.getServer(), this);
+    }
+
     public void write() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
         if (isChanged) {
             transport.write(clientProxy, this);
+            isChanged = false;
+        }
+    }
+
+    public void writeAll() {
+        if (isDeleted) {
+            throw new ObjectDeletedException();
+        }
+        if (isChanged) {
+            transport.writeAll(clientProxy.getServer(), this);
             isChanged = false;
         }
     }

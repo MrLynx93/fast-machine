@@ -1,6 +1,7 @@
 package com.agh.fastmachine.server.internal.transport.stats;
 
 import com.agh.fastmachine.server.api.ClientProxy;
+import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.internal.transport.LWM2M;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,10 @@ import java.util.stream.Collectors;
 public class Stats {
     private static Logger LOG = LoggerFactory.getLogger(Stats.class);
     private Map<ClientProxy, List<Event>> clientStats = new ConcurrentHashMap<>();
+
+    public void addBroadcastEvent(Server server, Event event) {
+        server.getClients().values().forEach(client -> addEvent(client, event));
+    }
 
     public synchronized void addEvent(ClientProxy client, Event event) {
         if (!clientStats.containsKey(client)) {

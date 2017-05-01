@@ -1,6 +1,7 @@
 package com.agh.fastmachine.server.internal.transport.coap.message;
 
 import com.agh.fastmachine.core.internal.parser.WriteParser;
+import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
 import com.agh.fastmachine.server.api.model.ObjectNodeProxy;
@@ -10,6 +11,10 @@ import com.agh.fastmachine.server.internal.transport.RequestBuilder;
 
 // TODO finish
 public class CoapRequestBuilder extends RequestBuilder<Lwm2mCoapRequest> {
+
+    public CoapRequestBuilder(Server server) {
+        super(server);
+    }
 
     @Override
     public Lwm2mCoapRequest buildCreateRequest(ObjectInstanceProxy instance, int id) { // TODO insert ClientProxy (and id) into instance

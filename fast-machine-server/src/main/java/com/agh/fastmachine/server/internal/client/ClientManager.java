@@ -23,7 +23,7 @@ public class ClientManager {
     public synchronized ClientProxyImpl createClient(String endpointClientName) {
         if (clientsByEndpointName.containsKey(endpointClientName)) {
             LOG.debug("Client {} already exists. Can't create proxy again", endpointClientName);
-            throw new IllegalStateException("Client already exists");
+//            throw new IllegalStateException("Client already exists");
         }
         ClientProxyImpl clientProxy = new ClientProxyImpl(server, endpointClientName);
         clientProxy.setRegistrationListener(registrationListener);

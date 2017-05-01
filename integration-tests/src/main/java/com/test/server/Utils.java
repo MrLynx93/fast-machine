@@ -57,7 +57,7 @@ public class Utils {
         public static final int SERVER_ID = 1;
         private static final String BROKER_ADDRESS = "34.250.196.139";
         public static final String SERVER_NAME = "test_mqtt_server";
-        private static final int QoS = 0;
+        private static final int QoS = 1;
 
         public static BootstrapServer configureBootstrapServer(boolean tls) {
             MqttConfiguration mqttConfiguration = new MqttConfiguration();

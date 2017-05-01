@@ -21,4 +21,5 @@ public interface ClientProxy {
     public <T extends ObjectInstanceProxy> void create(T patternInstance, int id);
 
     Date getRegisterTime();
+
 }

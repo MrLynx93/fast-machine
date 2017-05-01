@@ -1,6 +1,7 @@
 package com.agh.fastmachine.server.internal.transport;
 
 import com.agh.fastmachine.core.api.model.resourcevalue.OpaqueResourceValue;
+import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.model.*;
 import com.agh.fastmachine.server.internal.transport.coap.message.Lwm2mCoapRequest;
 
@@ -11,6 +12,11 @@ public abstract class RequestBuilder<REQ extends Lwm2mRequest> {
     private static final char[] CHARSET = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
     private static final int TOKEN_LENGTH = 8;
     private static SecureRandom secureRandom = new SecureRandom();
+    protected Server server;
+
+    public RequestBuilder(Server server) {
+        this.server = server;
+    }
 
     public abstract REQ buildCreateRequest(ObjectInstanceProxy instance, int id);
     public abstract REQ buildCreateRequest(ObjectInstanceProxy instance);

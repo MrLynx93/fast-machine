@@ -54,10 +54,29 @@ public class Tests {
         }
     }
 
+    private static void testBroadcast(Server server) {
+        Server.InstanceCreator instanceCreator = () -> Generator.newInstance(server);
+        server.createAll(instanceCreator, 1000);
+
+        ClientProxy anyClient = server.getClients().values().iterator().next();
+        ObjectBaseProxy<TestInstanceProxy> testObject = anyClient.getObjectTree().getObjectForType(TestInstanceProxy.class);
+        TestInstanceProxy constantInstance = testObject.getInstance(0);
+        TestInstanceProxy newInstance = testObject.getInstance(1000);
+
+        for (int i = 0; i < ITERATIONS; i++) {
+            newInstance.payload.setValue(new StringResourceValue(Generator.newPayload()));
+            newInstance.payload.writeAll();
+            constantInstance.clientId.readAll();
+            sleep();
+        }
+    }
+
     public static void testMqttBroadcast(Server server) {
+        testBroadcast(server);
     }
 
     public static void testCoapBroadcast(Server server) {
+        testBroadcast(server);
     }
 
     private static int getClientIdx(ClientProxy client) {
@@ -68,12 +87,22 @@ public class Tests {
     private static class Generator {
         private static final char[] CHARSET = "abcdefghijklmnopqrstuvwxyz1234567890".toCharArray();
         private static final int PAYLOAD_LENGTH = 1000;
+
         /**
          * New instance has ID of server. Constant instance has ID=0
          */
         private static TestInstanceProxy newInstance(ClientProxy client, Server server) {
             TestInstanceProxy instance = new TestInstanceProxy();
             instance.clientId.setValue(new StringResourceValue(client.getClientEndpointName()));
+            instance.serverId.setValue(new StringResourceValue(server.getName()));
+            instance.payload.setValue(new StringResourceValue(newPayload()));
+            return instance;
+        }
+
+
+        private static TestInstanceProxy newInstance(Server server) {
+            TestInstanceProxy instance = new TestInstanceProxy();
+            instance.clientId.setValue(new StringResourceValue("anyclient"));
             instance.serverId.setValue(new StringResourceValue(server.getName()));
             instance.payload.setValue(new StringResourceValue(newPayload()));
             return instance;

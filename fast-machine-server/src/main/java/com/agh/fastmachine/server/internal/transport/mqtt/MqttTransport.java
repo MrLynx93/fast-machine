@@ -1,7 +1,13 @@
 package com.agh.fastmachine.server.internal.transport.mqtt;
 
+import com.agh.fastmachine.core.api.model.resourcevalue.OpaqueResourceValue;
+import com.agh.fastmachine.core.api.model.resourcevalue.ResourceValue;
+import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
+import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
+import com.agh.fastmachine.server.api.model.ObjectMultipleResourceProxy;
+import com.agh.fastmachine.server.api.model.ObjectResourceProxy;
 import com.agh.fastmachine.server.internal.client.ClientManager;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.service.BootstrapService;
@@ -14,6 +20,7 @@ import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttReque
 import com.agh.fastmachine.server.internal.transport.mqtt.message.Lwm2mMqttResponse;
 import com.agh.fastmachine.server.internal.transport.mqtt.message.MqttRequestBuilder;
 import com.agh.fastmachine.server.internal.transport.stats.Event;
+import com.agh.fastmachine.server.internal.transport.stats.TimeoutException;
 import org.eclipse.paho.client.mqttv3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +43,9 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
     private ClientManager clientManager;
     private BootstrapService bootstrapService;
 
-    public MqttTransport() {
-        requestBuilder = new MqttRequestBuilder();
+    public MqttTransport(Server server) {
+        this.server = server;
+        requestBuilder = new MqttRequestBuilder(server);
     }
 
     @Override
@@ -71,9 +79,6 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
             } else {
                 mqttClient = new MqttClient("tcp://" + configuration.getBrokerAddress(), configuration.getServerName());
             }
-
-
-
 
 
             mqttClient.connect(options);
@@ -253,9 +258,196 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
         }
     }
 
+    public PendingRequest sendBroadcastRequest(Server server, Lwm2mMqttRequest request) {
+        PendingRequest pendingRequest = PendingRequest.broadcast(request, server);
+        pendingRequests.put(request.getToken(), pendingRequest);
+        try {
+            doSendBroadcastRequest(server, request);
+        } catch (Exception e) {
+            stats.addBroadcastEvent(server, Event.downlinkRequestSendTimeout(request.getOperation()));
+            e.printStackTrace();
+            LOG.error("Failed to send request {}", request);
+        }
+        return pendingRequest;
+    }
+
+    protected void doSendBroadcastRequest(Server server, Lwm2mMqttRequest request) throws Exception {
+        doSendMessage("lynx/" + request.getTopic().toString(), request.toMqttMessage());
+        stats.addBroadcastEvent(server, Event.downlinkRequestSendSuccess(request.getOperation()));
+        LOG.debug("Sent request {}", request.getTopic());
+    }
+
+    @Override
+    public void createAll(Server server, Server.InstanceCreator instance) {
+        Lwm2mMqttRequest request = requestBuilder.buildCreateRequest(instance.getNew());
+        request.getTopic().setClientId("%");
+        doCreate(instance, request);
+    }
+
+    @Override
+    public void createAll(Server server, Server.InstanceCreator instance, int instanceId) {
+        Lwm2mMqttRequest request = requestBuilder.buildCreateRequest(instance.getNew(), instanceId);
+        request.getTopic().setClientId("%");
+        doCreate(instance, request);
+    }
+
+    private void doCreate(Server.InstanceCreator instance, Lwm2mMqttRequest request) {
+        PendingRequest pendingRequest = sendBroadcastRequest(server, request);
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                server.getClients().values().forEach(client -> {
+                    ObjectInstanceProxy instanceForClient = instance.getNew();
+                    instanceForClient.internal().setClientProxy(client);
+                    instanceForClient.internal().setId(response.getCreatedInstanceId());
+                    connectToRemote(instanceForClient);
+                    LOG.debug("Created object instance: {}", instanceForClient.getPath());
+                });
+            }
+        } catch (TimeoutException e) {
+            stats.addBroadcastEvent(server, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
+        }
+    }
+
     @Override
     public void readAll(Server server, ObjectBaseProxy<?> object) {
-        // TODO
+        Lwm2mMqttRequest request = requestBuilder.buildReadRequest(object);
+        request.getTopic().setClientId("%");
+        PendingRequest pendingRequest = sendBroadcastRequest(server, request);
+
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                // Update object for all clients
+                ObjectBaseProxy newValue = readParser.deserialize(object, response.getPayload());
+                server.getClients().values().forEach(client -> {
+                    ObjectBaseProxy<?> objectForClient = client.getObjectTree().getObjectForId(object.getId());
+                    objectForClient.internal().update(newValue);
+                });
+                LOG.debug("Read object: {}", object.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addBroadcastEvent(server, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
+        }
+    }
+
+    @Override
+    public void readAll(Server server, ObjectInstanceProxy instance) {
+        Lwm2mMqttRequest request = requestBuilder.buildReadRequest(instance);
+        request.getTopic().setClientId("%");
+        PendingRequest pendingRequest = sendBroadcastRequest(server, request);
+
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                ObjectInstanceProxy newValue = readParser.deserialize(instance, response.getPayload());
+                server.getClients().values().forEach(client -> {
+                    ObjectInstanceProxy instanceForClient = client.getObjectTree()
+                            .getObjectForId(instance.getObjectId())
+                            .getInstance(instance.getId());
+                    instanceForClient.internal().update(newValue);
+                });
+                instance.internal().update(newValue);
+                LOG.debug("Read instance: {}", instance.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addBroadcastEvent(server, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
+        }
+    }
+
+    @Override
+    public void readAll(Server server, ObjectResourceProxy<?> resource) {
+        Lwm2mMqttRequest request = requestBuilder.buildReadRequest(resource);
+        request.getTopic().setClientId("%");
+
+        PendingRequest pendingRequest = sendBroadcastRequest(server, request);
+
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) { // TODO fix client, then operate basing on response.getContentType()
+                server.getClients().values().forEach(client -> {
+                    ObjectResourceProxy<?> resourceForClient = client.getObjectTree()
+                            .getObjectForId(resource.getInstance().getObjectId())
+                            .getInstance(resource.getInstance().getId())
+                            .getResource(resource.getId());
+
+                    if (OpaqueResourceValue.class.equals(resource.getValueType())) {
+                        OpaqueResourceValue newValue = new OpaqueResourceValue(response.getPayload());
+                        resourceForClient.internal().update(newValue);
+                    } else if (resource instanceof ObjectMultipleResourceProxy) {
+                        ObjectMultipleResourceProxy newValue = (ObjectMultipleResourceProxy<?>) readParser.deserialize(resource, response.getPayload());
+                        resourceForClient.internal().update(newValue);
+                    } else {
+                        ResourceValue<?> newValue = readParser.deserialize(resource.getValue(), response.getPayload());
+                        resourceForClient.internal().update(newValue);
+                    }
+                    LOG.debug("Read resource: {}", resource.getPath());
+                });
+            }
+        } catch (TimeoutException e) {
+            stats.addBroadcastEvent(server, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
+        }
+    }
+
+    @Override
+    public void writeAll(Server server, ObjectInstanceProxy instance) {
+        Lwm2mMqttRequest request = requestBuilder.buildWriteRequest(instance);
+        request.getTopic().setClientId("%");
+
+        PendingRequest pendingRequest = sendBroadcastRequest(server, request);
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                // Set values on all
+                server.getClients().values().forEach(client -> {
+                    ObjectInstanceProxy instanceForClient = client.getObjectTree()
+                            .getObjectForId(instance.getObjectId())
+                            .getInstance(instance.getId());
+
+                    instanceForClient.getResources().keySet().forEach(resourceId -> {
+                        ObjectResourceProxy<?> newValue = instance.getResource(resourceId);
+                        ObjectResourceProxy<?> oldValue = instanceForClient.getResource(resourceId);
+                        oldValue.setValue(newValue.getValue());
+                        oldValue.isChanged = false;
+                    });
+                });
+                LOG.debug("Write instance: {}", instance.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addBroadcastEvent(server, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
+        }
+    }
+
+    @Override
+    public void writeAll(Server server, ObjectResourceProxy resource) {
+        Lwm2mMqttRequest request = requestBuilder.buildWriteRequest(resource);
+        request.getTopic().setClientId("%");
+
+        PendingRequest pendingRequest = sendBroadcastRequest(server, request);
+        try {
+            Lwm2mResponse response = pendingRequest.waitForCompletion();
+            if (response.isSuccess()) {
+                // Set values on all
+                server.getClients().values().forEach(client -> {
+                    ObjectResourceProxy<?> resourceForClient = client.getObjectTree()
+                            .getObjectForId(resource.getInstance().getObjectId())
+                            .getInstance(resource.getInstance().getId())
+                            .getResource(resource.getId());
+
+                    resourceForClient.setValue(resource.getValue());
+                    resourceForClient.isChanged = false;
+                });
+                LOG.debug("Write resource: {}", resource.getPath());
+            }
+        } catch (TimeoutException e) {
+            stats.addBroadcastEvent(server, Event.downlinkResponseReceiveTimeout(request.getOperation()));
+            LOG.error("Didn't receive response for {}", request);
+        }
     }
 
     public RegistrationInfo parseRegistrationInfo(Lwm2mMqttRegisterRequest request) {

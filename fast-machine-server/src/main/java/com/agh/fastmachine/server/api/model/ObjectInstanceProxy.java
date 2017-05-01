@@ -69,22 +69,39 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
         transport.read(clientProxy, this);
     }
 
+    public void readAll() {
+        if (isDeleted) {
+            throw new ObjectDeletedException();
+        }
+        transport.readAll(clientProxy.getServer(), this);
+    }
+
     public void write() {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }
         if (isChanged()) {
-            Map<Integer, ObjectResourceModel<?>> modifiedResources = findModifiedResources();
-            ServerObjectFactory factory = new ServerObjectFactory();
-
-            ObjectInstanceProxy instance = (ObjectInstanceProxy) factory.createObjectInstance(this.getId(), modifiedResources);
-            instance.internal().setObject(this.object);
-
             transport.write(clientProxy, this);
 
+            Map<Integer, ObjectResourceModel<?>> modifiedResources = findModifiedResources();
             for (ObjectResourceModel<?> resource : modifiedResources.values()) {
                 ((ObjectResourceProxy<?>) resource).internal().setChanged(false);
             }
+        }
+    }
+
+    public void writeAll() {
+        if (isDeleted) {
+            throw new ObjectDeletedException();
+        }
+        if (isChanged()) {
+            transport.writeAll(clientProxy.getServer(), this);
+
+//            TODO for all clients
+            Map<Integer, ObjectResourceModel<?>> modifiedResources = findModifiedResources();
+//            for (ObjectResourceModel<?> resource : modifiedResources.values()) {
+//                ((ObjectResourceProxy<?>) resource).internal().setChanged(false);
+//            }
         }
     }
 
@@ -199,7 +216,7 @@ public abstract class ObjectInstanceProxy extends ObjectNodeProxy<ObjectInstance
         return valueClass.equals(IntegerResourceValue.class) || valueClass.equals(FloatResourceValue.class) || valueClass.equals(LongResourceValue.class);
     }
 
-    private Map<Integer, ObjectResourceModel<?>> findModifiedResources() {
+    public Map<Integer, ObjectResourceModel<?>> findModifiedResources() {
         Map<Integer, ObjectResourceModel<?>> modifiedResources = new HashMap<>();
         for (ObjectResourceProxy<?> resource : resources.values()) {
             if (resource.isChanged()) {

@@ -29,7 +29,12 @@ public class CoapStartTestServer {
         // Wait for register all clients, then do all test
         System.out.println("You should now run all clients.");
         registerCount.await();
-        Tests.testCoap(server);
+        if (clientsNumber > 1) {
+            Tests.testCoapBroadcast(server);
+        } else {
+            Tests.testCoap(server);
+        }
+
 
         // Wait for deregister, then exit
         deregisterCount.await();

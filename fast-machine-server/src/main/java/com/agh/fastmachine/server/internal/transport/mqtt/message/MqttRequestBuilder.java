@@ -2,6 +2,7 @@ package com.agh.fastmachine.server.internal.transport.mqtt.message;
 
 import com.agh.fastmachine.core.internal.parser.WriteAttributesParser;
 import com.agh.fastmachine.core.internal.parser.WriteParser;
+import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
 import com.agh.fastmachine.server.api.model.ObjectNodeProxy;
@@ -13,6 +14,10 @@ import com.agh.fastmachine.server.internal.transport.mqtt.MQTT;
 import static com.agh.fastmachine.server.internal.transport.LWM2M.Operation.*;
 
 public class MqttRequestBuilder extends RequestBuilder<Lwm2mMqttRequest> {
+
+    public MqttRequestBuilder(Server server) {
+        super(server);
+    }
 
     @Override
     public Lwm2mMqttRequest buildCreateRequest(ObjectInstanceProxy instance, int id) {
@@ -140,8 +145,8 @@ public class MqttRequestBuilder extends RequestBuilder<Lwm2mMqttRequest> {
                 operation,
                 "req",
                 generateToken(),
-                node.getClientProxy().getClientEndpointName(),
-                node.getClientProxy().getServerId(),
+                node.getClientProxy() == null ? "%" : node.getClientProxy().getClientEndpointName(),
+                server.getName(),
                 node.getPath()
         );
     }

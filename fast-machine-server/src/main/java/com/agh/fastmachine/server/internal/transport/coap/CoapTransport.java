@@ -1,5 +1,10 @@
 package com.agh.fastmachine.server.internal.transport.coap;
 
+import com.agh.fastmachine.server.api.ClientProxy;
+import com.agh.fastmachine.server.api.Server;
+import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
+import com.agh.fastmachine.server.api.model.ObjectInstanceProxy;
+import com.agh.fastmachine.server.api.model.ObjectResourceProxy;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.parser.RegistrationInfoParser;
 import com.agh.fastmachine.server.internal.service.registrationinfo.RegistrationInfo;
@@ -39,8 +44,9 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
     private CoapServer coapServer;
     private Endpoint endpoint;
 
-    public CoapTransport() {
-        requestBuilder = new CoapRequestBuilder();
+    public CoapTransport(Server server) {
+        requestBuilder = new CoapRequestBuilder(server);
+        this.server = server;
     }
 
     @Override
@@ -94,6 +100,80 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
     @Override
     protected boolean isNotify(Lwm2mRequest request, Lwm2mResponse response) {
         return (request.getOperation() == LWM2M.Operation.I_OBSERVE && response.isSuccess());
+    }
+
+    @Override
+    public void createAll(Server server, Server.InstanceCreator instance) {
+        server.getClients().values().forEach(client -> {
+            ObjectInstanceProxy newInstance = instance.getNew();
+            newInstance.internal().setClientProxy(client);
+            create((ClientProxyImpl) client, newInstance);
+        });
+    }
+
+    @Override
+    public void createAll(Server server, Server.InstanceCreator instance, int instanceId) {
+        server.getClients().values().forEach(client -> {
+            ObjectInstanceProxy newInstance = instance.getNew();
+            newInstance.internal().setClientProxy(client);
+            create((ClientProxyImpl) client, newInstance, instanceId);
+        });
+    }
+
+    @Override
+    public void readAll(Server server, ObjectBaseProxy object) {
+        server.getClients().values().forEach(client -> {
+            ObjectBaseProxy<?> objectForClient = client.getObjectTree()
+                    .getObjectForId(object.getId());
+
+            read((ClientProxyImpl) client, objectForClient);
+        });
+    }
+
+    @Override
+    public void readAll(Server server, ObjectInstanceProxy instance) {
+        server.getClients().values().forEach(client -> {
+            ObjectInstanceProxy instanceForClient = client.getObjectTree()
+                    .getObjectForId(instance.getObjectId())
+                    .getInstance(instance.getId());
+
+            read((ClientProxyImpl) client, instanceForClient);
+        });
+    }
+
+    @Override
+    public void readAll(Server server, ObjectResourceProxy<?> resource) {
+        server.getClients().values().forEach(client -> {
+            ObjectResourceProxy<?> resourceForClient = client.getObjectTree()
+                    .getObjectForId(resource.getInstance().getObjectId())
+                    .getInstance(resource.getInstance().getId())
+                    .getResource(resource.getId());
+
+            read((ClientProxyImpl) client, resourceForClient);
+        });
+    }
+
+    @Override
+    public void writeAll(Server server, ObjectInstanceProxy instance) {
+        server.getClients().values().forEach(client -> {
+            ObjectInstanceProxy instanceForClient = client.getObjectTree()
+                    .getObjectForId(instance.getObjectId())
+                    .getInstance(instance.getId());
+
+            write((ClientProxyImpl) client, instanceForClient);
+        });
+    }
+
+    @Override
+    public void writeAll(Server server, ObjectResourceProxy resource) {
+        server.getClients().values().forEach(client -> {
+            ObjectResourceProxy<?> resourceForClient = client.getObjectTree()
+                    .getObjectForId(resource.getInstance().getObjectId())
+                    .getInstance(resource.getInstance().getId())
+                    .getResource(resource.getId());
+
+            write((ClientProxyImpl) client, resourceForClient);
+        });
     }
 
     private class RequestCacheMessageObserver extends MessageObserverAdapter {
