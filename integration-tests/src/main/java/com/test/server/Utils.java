@@ -37,7 +37,8 @@ public class Utils {
     public static final int DELETE = 1 << 3;
     public static final int LIFETIME = 3600;
 
-    public static final String SERVER_IP = "localhost"; // 34.252.159.36
+//    public static final String SERVER_IP = "localhost";
+    public static final String SERVER_IP = "34.252.159.36";
 
     public static RegistrationListener counterListener(CountDownLatch registerCount, CountDownLatch deregisterCount) {
         return new RegistrationListener() {

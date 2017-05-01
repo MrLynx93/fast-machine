@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 
 public class Tests {
     private static final ExecutorService executor = Executors.newFixedThreadPool(5);
-    public static final int ITERATIONS = 10;
+    public static final int ITERATIONS = 100;
 
     public static void testMqtt(Server server) {
         testSingle(server);
