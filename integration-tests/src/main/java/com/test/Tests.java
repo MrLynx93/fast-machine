@@ -6,10 +6,9 @@ import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.internal.transport.stats.TimeoutException;
 import com.test.model.test.TestInstanceProxy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -17,6 +16,7 @@ import java.util.concurrent.Executors;
 
 
 public class Tests {
+    private static final Logger LOG = LoggerFactory.getLogger(Tests.class);
     private static final ExecutorService executor = Executors.newFixedThreadPool(5);
     private static final ExecutorService asyncExecutor = Executors.newFixedThreadPool(5);
 
@@ -57,9 +57,9 @@ public class Tests {
                         try {
                             constantInstance.clientId.read();
                             long endTime = System.currentTimeMillis();
-                            System.out.println(String.format("(%d,%d)", startTime, endTime));
+                            LOG.debug(String.format("(%d,%d)", startTime, endTime));
                         } catch (TimeoutException ex) {
-                            System.out.println(String.format("(%d,inf)", startTime));
+                            LOG.debug(String.format("(%d,inf)", startTime));
                         }
 
                     });
