@@ -4,8 +4,12 @@ import com.agh.fastmachine.core.api.model.resourcevalue.StringResourceValue;
 import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
+import com.agh.fastmachine.server.internal.transport.stats.TimeoutException;
 import com.test.model.test.TestInstanceProxy;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -14,18 +18,31 @@ import java.util.concurrent.Executors;
 
 public class Tests {
     private static final ExecutorService executor = Executors.newFixedThreadPool(5);
+    private static final ExecutorService asyncExecutor = Executors.newFixedThreadPool(5);
+
+    private static final boolean async = true;
+
     public static final int ITERATIONS = 100;
 
     public static void testMqtt(Server server) {
-        testSingle(server);
+        try {
+            testSingle(server);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void testCoap(Server server) {
         System.out.println("Started coap test");
-        testSingle(server);
+        try {
+            testSingle(server);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private static void testSingle(Server server) {
+    private static void testSingle(Server server) throws Exception {
+
         server.getClients().values().forEach(client -> executor.submit(() -> {
             int clientIdx = getClientIdx(client);
             ObjectBaseProxy<TestInstanceProxy> testObject = client.getObjectTree().getObjectForType(TestInstanceProxy.class);
@@ -34,11 +51,26 @@ public class Tests {
             client.create(newInstance, clientIdx);
 
             for (int i = 0; i < ITERATIONS; i++) {
-                newInstance.payload.setValue(new StringResourceValue(Generator.newPayload()));
-                newInstance.payload.write();
+                if (async) {
+                    asyncExecutor.submit(() -> {
+                        long startTime = System.currentTimeMillis();
+                        try {
+                            constantInstance.clientId.read();
+                            long endTime = System.currentTimeMillis();
+                            System.out.println(String.format("(%d,%d)", startTime, endTime));
+                        } catch (TimeoutException ex) {
+                            System.out.println(String.format("(%d,inf)", startTime));
+                        }
 
-                constantInstance.clientId.read();
+                    });
+                } else {
+                    newInstance.payload.setValue(new StringResourceValue(Generator.newPayload()));
+                    newInstance.payload.write();
 
+                    try {
+                        constantInstance.clientId.read();
+                    } catch (TimeoutException ignored) { }
+                }
                 sleep();
             }
 

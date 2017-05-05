@@ -297,7 +297,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
     }
 
     @SuppressWarnings("unchecked")
-    public void read(ClientProxyImpl client, ObjectResourceProxy<?> resource) {
+    public void read(ClientProxyImpl client, ObjectResourceProxy<?> resource) throws TimeoutException {
         REQ request = requestBuilder.buildReadRequest(resource);
         PendingRequest pendingRequest = sendRequest(client, request);
 
@@ -319,6 +319,7 @@ public abstract class Transport<T extends TransportConfiguration, REQ extends Lw
         } catch (TimeoutException e) {
             stats.addEvent(client, Event.downlinkResponseReceiveTimeout(request.getOperation()));
             LOG.error("Didn't receive response for {}", request);
+            throw e;
         }
     }
 

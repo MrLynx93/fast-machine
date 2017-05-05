@@ -9,6 +9,7 @@ import com.agh.fastmachine.server.api.Server;
 import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.api.model.ObjectTree;
 import com.agh.fastmachine.server.internal.client.ClientProxyStatus;
+import com.agh.fastmachine.server.internal.transport.stats.TimeoutException;
 import org.junit.Test;
 import util.model.ExampleObjectInstanceProxy;
 
@@ -133,7 +134,11 @@ public class WriteIT { // TODO multiple resource
         ExampleObjectInstanceProxy exampleInstanceProxy = exampleObjectProxy.getInstance(1);
 
         // Read objects
-        exampleInstanceProxy.multipleIntegerResource.read();
+        try {
+            exampleInstanceProxy.multipleIntegerResource.read();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
 
         // Check if values were read
         assertThat(exampleInstanceProxy.multipleIntegerResource.getValues().get(0).value, equalTo(5555));

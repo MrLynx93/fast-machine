@@ -6,6 +6,7 @@ import com.agh.fastmachine.core.internal.visitor.NodeVisitor;
 import com.agh.fastmachine.server.api.exception.ObjectDeletedException;
 import com.agh.fastmachine.server.api.listener.ObservationListener;
 import com.agh.fastmachine.server.internal.transport.LWM2M;
+import com.agh.fastmachine.server.internal.transport.stats.TimeoutException;
 
 import java.util.Map;
 
@@ -64,7 +65,7 @@ public class ObjectResourceProxy<T extends ResourceValue<?>> extends ObjectNodeP
         this.value = (T) value;
     }
 
-    public void read() {
+    public void read() throws TimeoutException {
         if (isDeleted) {
             throw new ObjectDeletedException();
         }

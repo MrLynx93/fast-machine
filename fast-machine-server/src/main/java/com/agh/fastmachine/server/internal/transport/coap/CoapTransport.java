@@ -18,6 +18,7 @@ import com.agh.fastmachine.server.internal.transport.coap.message.Lwm2mCoapRespo
 import com.agh.fastmachine.server.internal.transport.coap.resource.CoapBootstrapResource;
 import com.agh.fastmachine.server.internal.transport.coap.resource.CoapRegistrationResource;
 import com.agh.fastmachine.server.internal.transport.stats.Event;
+import com.agh.fastmachine.server.internal.transport.stats.TimeoutException;
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.coap.MessageObserverAdapter;
 import org.eclipse.californium.core.coap.Request;
@@ -149,7 +150,9 @@ public class CoapTransport extends Transport<CoapConfiguration, Lwm2mCoapRequest
                     .getInstance(resource.getInstance().getId())
                     .getResource(resource.getId());
 
-            read((ClientProxyImpl) client, resourceForClient);
+            try {
+                read((ClientProxyImpl) client, resourceForClient);
+            } catch (TimeoutException ignored) { }
         });
     }
 
