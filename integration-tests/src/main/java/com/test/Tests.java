@@ -22,7 +22,7 @@ public class Tests {
 
     private static final boolean async = true;
 
-    public static final int ITERATIONS = 2000;
+    public static final int ITERATIONS = 100000;
 
     public static void testMqtt(Server server) {
         try {
