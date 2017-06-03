@@ -50,7 +50,6 @@ public class StartCoapServer {
     }
 
     public static void main(String[] args) {
-        StartBootstrapServer.main(args);
         Server server = configureServer();
         server.setRegistrationListener(registrationListener);
         server.start();

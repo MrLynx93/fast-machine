@@ -52,6 +52,7 @@ public class StartMqttServer {
     }
 
     public static void main(String[] args) {
+        StartBootstrapServer.main(args);
         Server server = new Server(configureServer(), configureTransport());
         server.setRegistrationListener(registrationListener);
         server.start();
