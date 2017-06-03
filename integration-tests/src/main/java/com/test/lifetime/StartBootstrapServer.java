@@ -57,6 +57,7 @@ public class StartBootstrapServer {
     private static void configureBootstrapSequence(BootstrapServer bootstrapServer) {
         bootstrapServer.setSequenceForPattern(".*android.*", sequenceForAndroid());
         bootstrapServer.setSequenceForPattern(".*local.*", sequenceForLocal());
+        bootstrapServer.setSequenceForPattern("client.*", sequenceForLocal());
     }
 
     private static SecurityObjectInstanceProxy bootstrapSecurityInstance() {
