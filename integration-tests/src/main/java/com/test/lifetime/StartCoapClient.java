@@ -18,7 +18,6 @@ import java.util.List;
 
 public class StartCoapClient {
     private static final String SERVER_IP = "34.252.159.36";
-    private static final String CLIENT_ID = "client_asdf";
     private static final int SERVER_ID = 1;
     private static Client client;
     private static int lifetime;
@@ -34,6 +33,10 @@ public class StartCoapClient {
         CoapClientConf configuration = new CoapClientConf();
         configuration.setPort(29001);
         configuration.setDtls(false);
+        configuration.setKeyStorePassword("123456");
+        configuration.setKeyStoreLocation("keyStore.jks");
+        configuration.setTrustStorePassword("123456");
+        configuration.setTrustStoreLocation("trustStore.jks");
         return new Client("client_android", factoryBootstrap(), configuration);
     }
 
@@ -53,7 +56,7 @@ public class StartCoapClient {
         securityInst.serverUri.setValue(new StringResourceValue("coap://" + SERVER_IP + ":19001"));
 
         TestObjectInstance testInstance = testBase.getNewInstance(0);
-        testInstance.clientId.setValue(new StringResourceValue(CLIENT_ID));
+        testInstance.clientId.setValue(new StringResourceValue("asd"));
         testInstance.serverId.setValue(new StringResourceValue("global"));
         testInstance.payload.setValue(new StringResourceValue("ABC"));
 
