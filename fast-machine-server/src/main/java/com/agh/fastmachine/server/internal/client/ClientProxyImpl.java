@@ -208,7 +208,7 @@ public class ClientProxyImpl extends BaseRegistrationListener implements ClientP
 
         // TODO get lifetime from object model
         private long getTimeout() {
-            return 100000;
+            return 1000000;
         }
     }
 }

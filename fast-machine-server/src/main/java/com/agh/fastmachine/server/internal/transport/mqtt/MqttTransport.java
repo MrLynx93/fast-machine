@@ -30,6 +30,7 @@ import javax.net.ssl.TrustManagerFactory;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+import java.text.DateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -222,6 +223,8 @@ public class MqttTransport extends Transport<MqttConfiguration, Lwm2mMqttRequest
     }
 
     private void handleUpdate(Lwm2mMqttRegisterRequest request) {
+        String formattedDate = DateFormat.getDateTimeInstance().format(new Date());
+        System.out.println("Last update received: " + formattedDate);
         ClientProxyImpl clientProxy = registeredClients.get(request.getTopic().getClientId());
         if (clientProxy == null) {
             System.out.println("clientId " + request.getTopic().getClientId());

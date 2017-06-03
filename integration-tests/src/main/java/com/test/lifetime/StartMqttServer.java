@@ -55,6 +55,7 @@ public class StartMqttServer {
         Server server = new Server(configureServer(), configureTransport());
         server.setRegistrationListener(registrationListener);
         server.start();
+        System.out.println("You should now run all clients.");
     }
 
     private static ServerConfiguration configureServer() {
