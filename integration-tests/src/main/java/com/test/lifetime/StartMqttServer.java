@@ -47,6 +47,8 @@ public class StartMqttServer {
 
             System.out.println(i);
         }
+        System.out.println("Finished test");
+
     }
 
     public static void main(String[] args) {
