@@ -1,4 +1,4 @@
-package basic;
+package com.test.lifetime;
 
 import com.agh.fastmachine.core.api.model.resourcevalue.*;
 import com.agh.fastmachine.server.api.listener.BootstrapListener;
@@ -9,20 +9,20 @@ import com.agh.fastmachine.server.api.model.builtin.ServerObjectInstanceProxy;
 import com.agh.fastmachine.server.bootstrap.BootstrapSequence;
 import com.agh.fastmachine.server.bootstrap.BootstrapServer;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
+import com.test.model.test.TestInstanceProxy;
+import com.test.util.model.ExampleMqttInstanceProxy;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import util.model.ExampleMqttInstanceProxy;
 
 import java.util.*;
 
 public class StartBootstrapServer {
     private static final boolean TLS = false;
-    private static int LIFETIME;
+    private static final int LIFETIME = 10;
     private static final String BROKER_ADDRESS = "34.250.196.139:1883"; //TODO
     private static final String BOOTSTRAP_SERVER_NAME = "bootstrap-server";
     private static final List<ServerData> androidServers = new ArrayList<>();
     private static final List<ServerData> localServers = new ArrayList<>();
-
 
     static {
         /* Don't use 0 as shortServerId. main_server_1 is server for both android and local clients **/
@@ -31,7 +31,6 @@ public class StartBootstrapServer {
     }
 
     public static void main(String[] args) {
-        LIFETIME = Integer.parseInt(args[0]);
         BootstrapServer bootstrapServer = new BootstrapServer(configureTransport());
         configureBootstrapSequence(bootstrapServer);
         bootstrapServer.setBootstrapListener(bootstrapListener);
@@ -108,7 +107,7 @@ public class StartBootstrapServer {
                 .writeObject(prepareServerObject(localServers))
                 .writeObject(prepareSecurityObject(localServers))
                 .writeInstance(bootstrapSecurityInstance())
-                .writeInstance(exampleInstance())
+                .writeInstance(testInstance())
                 .finish(); // TODO TEST OBJECTS ETC.
     }
 
@@ -128,6 +127,15 @@ public class StartBootstrapServer {
         exampleInstance.multipleOptionalStringExample.setValues(null);
         return exampleInstance;
     }
+
+    private static TestInstanceProxy testInstance() {
+        TestInstanceProxy testInstanceProxy = new TestInstanceProxy();
+        testInstanceProxy.clientId.setValue(new IntegerResourceValue(0));
+        testInstanceProxy.serverId.setValue(new IntegerResourceValue(0));
+        testInstanceProxy.payload.setValue(new StringResourceValue("ABC"));
+        return testInstanceProxy;
+    }
+
 
     /////////////////////////////////// OTHER /////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////

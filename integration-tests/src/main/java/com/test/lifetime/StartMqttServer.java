@@ -1,4 +1,4 @@
-package basic;
+package com.test.lifetime;
 
 import com.agh.fastmachine.server.api.ClientProxy;
 import com.agh.fastmachine.server.api.Server;
@@ -8,10 +8,11 @@ import com.agh.fastmachine.server.api.model.ObjectBaseProxy;
 import com.agh.fastmachine.server.internal.client.ClientProxyImpl;
 import com.agh.fastmachine.server.internal.transport.TransportConfiguration;
 import com.agh.fastmachine.server.internal.transport.mqtt.MqttConfiguration;
-import util.model.AndroidUtilsInstanceProxy;
-import util.model.ExampleMqttInstanceProxy;
-import util.model.PingInstanceProxy;
+import com.agh.fastmachine.server.internal.transport.stats.TimeoutException;
+import com.test.model.test.TestInstanceProxy;
 
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,6 +20,7 @@ public class StartMqttServer {
     private static final boolean TLS = false;
     private static final String BROKER_ADDRESS = "34.250.196.139:1883"; //TODO
     private static final String SERVER_NAME = "main_server_1";
+    private static final long SLEEPTIME = 30;
 
     private static ExecutorService executor = Executors.newFixedThreadPool(2);
 
@@ -28,15 +30,21 @@ public class StartMqttServer {
      */
     private static void handleClient(ClientProxyImpl client) {
         for (int i = 0; i < 100; i++) {
-            ObjectBaseProxy<AndroidUtilsInstanceProxy> exampleObj = client.getObjectTree().getObjectForType(AndroidUtilsInstanceProxy.class);
-            AndroidUtilsInstanceProxy instance = exampleObj.getInstance(0);
-            instance.vibrate.execute("");
+            ObjectBaseProxy<TestInstanceProxy> exampleObj = client.getObjectTree().getObjectForType(TestInstanceProxy.class);
+            TestInstanceProxy instance = exampleObj.getInstance(0);
 
             try {
-                Thread.sleep(10000L);
-            } catch (InterruptedException e) {
+                instance.payload.read();
+                String formattedDate = DateFormat.getDateTimeInstance().format(new Date());
+                System.out.println("Last read sent: " + formattedDate);
+
+            } catch (TimeoutException e) {
+                System.out.println("Cos sie popsulo");
                 e.printStackTrace();
             }
+
+            sleepForMills();
+
             System.out.println(i);
         }
     }
@@ -50,9 +58,7 @@ public class StartMqttServer {
     private static ServerConfiguration configureServer() {
         ServerConfiguration configuration = new ServerConfiguration();
         configuration.setName(SERVER_NAME);
-        configuration.addObjectSupport(AndroidUtilsInstanceProxy.class);
-        configuration.addObjectSupport(ExampleMqttInstanceProxy.class);
-        configuration.addObjectSupport(PingInstanceProxy.class);
+        configuration.addObjectSupport(TestInstanceProxy.class);
         configuration.setTransport(ServerConfiguration.TRASPORT_MQTT);
         return configuration;
     }
@@ -82,5 +88,19 @@ public class StartMqttServer {
             System.out.println("Deregistered client " + client.getClientEndpointName());
             // TODO deregister
         }
+
+        @Override
+        public void onUpdate(ClientProxy client) {
+            String formattedDate = DateFormat.getDateTimeInstance().format(new Date());
+            System.out.println("Last update received " + formattedDate);
+        }
     };
+
+    private static void sleepForMills() {
+        try {
+            Thread.sleep(SLEEPTIME);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }

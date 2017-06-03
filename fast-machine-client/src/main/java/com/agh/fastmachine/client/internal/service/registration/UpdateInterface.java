@@ -5,6 +5,8 @@ import com.agh.fastmachine.client.api.model.builtin.ServerObjectInstance;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.Request;
 
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,6 +55,9 @@ public class UpdateInterface {
         }
         updateRequest.setURI(uri.toString());
         updateRequest.send(client.getEndpoint());
+
+        String formattedDate = DateFormat.getDateTimeInstance().format(new Date());
+        System.out.println("Last update sent: " + formattedDate);
     }
 
     private class UpdateThread extends Thread { // todo should switch to ScheduledThreadPoolExecutor like in observation
