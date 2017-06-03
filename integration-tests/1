@@ -1,0 +1,27 @@
+May 06, 2017 7:48:29 AM org.eclipse.californium.core.network.config.NetworkConfig createStandardWithFile
+INFO: Loading standard properties from file Californium.properties
+May 06, 2017 7:48:29 AM org.eclipse.californium.core.CoapServer start
+INFO: Starting server
+May 06, 2017 7:48:29 AM org.eclipse.californium.core.network.CoapEndpoint start
+INFO: Starting endpoint at 0.0.0.0/0.0.0.0:19001
+May 06, 2017 7:58:43 AM org.eclipse.californium.core.network.stack.BlockwiseLayer$BlockCleanupTask run
+INFO: Block2 transfer timed out: null-POST   MID=   -1, Token=316c316e39316733, OptionSet={"Uri-Host":"user-94-254-144-51.play-internet.pl", "Uri-Port":45813, "Uri-Path":["20004","1"], "Content-Format":"unknown/1544", "Accept":"unknown/1544"}, 
+c8 00 0c 63 6c 69 65 6e 74 5f 32 39 30 30 31 c8 01 10 74 65 73 74 5f 63 6f 61 70 5f 73 65 72 76
+65 72 d0 02 03 e8 6e 67 33 6d 61 6b 37 67 7a 6c 71 76 36 77 68 6f 65 36 67 6e 35 64 6d 68 6c 6d
+65 32 6d 63 78 37 61 7a 69 38 61 36 34 70 35 31 35 33 38 65 64 72 34 79 38 36 62 39 69 64 68 76
+62 65 74 76 6a 61 30 65 6c 32 30 73 71 6d 6d 63 69 36 73 76 79 78 78 77 69 72 32 6b 6d 77 6a 75
+65 65 64 69 6e 33 36 30 76 30 68 30 77 6e 71 37 73 39 6e 34 69 32 78 30 6f 35 74 69 6c 70 6b 34
+39 6e 69 34 74 6f 38 6d 31 38 70 7a 6c 7a 75 73 37 67 65 65 78 76 62 36 6c 67 67 37 67 35 38 79
+73 6f 64 6f 31 72 61 6d 31 74 72 73 61 30 63 36 7a 35 31 30 39 6d 63 69 30 33 30 30 6f 73 63 75
+69 6f 6e 76 34 77 72 6f 63 7a 71 68 73 67 6d 73 35 78 76 70 39 33 6e 64 68 71 6a 34 74 72 68 7a
+ .. 1038 bytes
+May 06, 2017 8:00:13 AM org.eclipse.californium.core.network.Matcher receiveRequest
+INFO: Duplicate request: CON-PUT    MID=42289, Token=23be1c, OptionSet={"Uri-Port":19001, "Uri-Path":["rd","node0"], "Uri-Query":"lt=3600"}, no payload
+May 06, 2017 8:01:02 AM org.eclipse.californium.core.network.Matcher receiveRequest
+INFO: Duplicate request: CON-PUT    MID=42316, Token=ec64c0, OptionSet={"Uri-Port":19001, "Uri-Path":["rd","node0"], "Uri-Query":"lt=3600"}, no payload
+May 06, 2017 8:02:30 AM org.eclipse.californium.core.network.Matcher receiveRequest
+INFO: Duplicate request: CON-PUT    MID=42365, Token=72454386a1, OptionSet={"Uri-Port":19001, "Uri-Path":["rd","node0"], "Uri-Query":"lt=3600"}, no payload
+May 06, 2017 8:02:38 AM org.eclipse.californium.core.network.Matcher receiveRequest
+INFO: Duplicate request: CON-PUT    MID=42366, Token=933465, OptionSet={"Uri-Port":19001, "Uri-Path":["rd","node0"], "Uri-Query":"lt=3600"}, no payload
+May 06, 2017 8:03:13 AM org.eclipse.californium.core.network.Matcher receiveRequest
+INFO: Duplicate request: CON-PUT    MID=42389, Token=0f7499, OptionSet={"Uri-Port":19001, "Uri-Path":["rd","node0"], "Uri-Query":"lt=3600"}, no payload
