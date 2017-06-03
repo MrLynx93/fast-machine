@@ -21,9 +21,10 @@ public class StartCoapClient {
     private static final String CLIENT_ID = "client_asdf";
     private static final int SERVER_ID = 1;
     private static Client client;
-    private static int lifetime = 60;
+    private static int lifetime;
 
     public static void main(String[] args) {
+        lifetime = Integer.parseInt(args[0]);
         client = configureClient();
         client.start();
     }
