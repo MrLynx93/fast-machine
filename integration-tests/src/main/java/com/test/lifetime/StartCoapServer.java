@@ -19,7 +19,7 @@ public class StartCoapServer {
     private static final boolean TLS = false;
     private static final String SERVER_NAME = "main_server_coap";
     private static final String SERVER_IP = "34.252.159.36";
-    private static final long SLEEPTIME = 30;
+    private static final long SLEEPTIME = 1000;
 
     private static ExecutorService executor = Executors.newFixedThreadPool(2);
 
