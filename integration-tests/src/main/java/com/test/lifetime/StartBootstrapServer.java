@@ -37,6 +37,7 @@ public class StartBootstrapServer {
         configureBootstrapSequence(bootstrapServer);
         bootstrapServer.setBootstrapListener(bootstrapListener);
         bootstrapServer.start();
+        System.out.println("Started bootstrap server");
     }
 
     private static MqttConfiguration configureTransport() {
@@ -44,6 +45,7 @@ public class StartBootstrapServer {
         configuration.setBrokerAddress(BROKER_ADDRESS);
         configuration.setServerName("bootstrap-server");
         configuration.setQos(1);
+        configuration.setDtls(false);
         if (TLS) {
             configuration.setDtls(true);
             configuration.setKeyStoreLocation("ca.jks");
