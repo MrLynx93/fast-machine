@@ -44,6 +44,7 @@ public class StartCoapServer {
                 e.printStackTrace();
             }
 
+            System.out.println("Sleep time: " + SLEEPTIME);
             sleepForMills();
             SLEEPTIME += 1000;
 
