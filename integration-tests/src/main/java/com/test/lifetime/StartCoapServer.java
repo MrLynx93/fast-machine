@@ -22,13 +22,14 @@ public class StartCoapServer {
     private static final long SLEEPTIME = 1000;
 
     private static ExecutorService executor = Executors.newFixedThreadPool(2);
+    private static int lifetime;
 
     /**
      * This function is to experiment
      *
      */
     private static void handleClient(ClientProxyImpl client) {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 20 * lifetime; i++) {
             ObjectBaseProxy<TestInstanceProxy> exampleObj = client.getObjectTree().getObjectForType(TestInstanceProxy.class);
             TestInstanceProxy instance = exampleObj.getInstance(0);
 
@@ -50,6 +51,7 @@ public class StartCoapServer {
     }
 
     public static void main(String[] args) {
+        lifetime = Integer.parseInt(args[0]);
         Server server = configureServer();
         server.setRegistrationListener(registrationListener);
         server.start();
