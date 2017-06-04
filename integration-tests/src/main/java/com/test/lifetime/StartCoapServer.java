@@ -19,7 +19,7 @@ public class StartCoapServer {
     private static final boolean TLS = false;
     private static final String SERVER_NAME = "main_server_coap";
     private static final String SERVER_IP = "34.252.159.36";
-    private static final long SLEEPTIME = 5 * 60 * 1000;
+    private static long SLEEPTIME = 2 * 60 * 1000;
 
     private static ExecutorService executor = Executors.newFixedThreadPool(2);
     private static int lifetime;
@@ -34,6 +34,7 @@ public class StartCoapServer {
             TestInstanceProxy instance = exampleObj.getInstance(0);
 
             try {
+                System.out.println("Sending...");
                 instance.payload.read();
                 String formattedDate = DateFormat.getDateTimeInstance().format(new Date());
                 System.out.println("Last read sent: " + formattedDate);
@@ -44,6 +45,7 @@ public class StartCoapServer {
             }
 
             sleepForMills();
+            SLEEPTIME += (60 * 1000);
 
             System.out.println(i);
         }
