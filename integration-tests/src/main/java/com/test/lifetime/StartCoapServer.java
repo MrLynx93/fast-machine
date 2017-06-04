@@ -45,7 +45,7 @@ public class StartCoapServer {
             }
 
             sleepForMills();
-            SLEEPTIME += (60 * 1000);
+            SLEEPTIME += 1000;
 
             System.out.println(i);
         }
