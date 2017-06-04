@@ -179,7 +179,8 @@ public class BootstrapServer {
 
         @Override
         public void connectionLost(Throwable throwable) {
-
+            System.out.println("Connecction lostt");
+            throwable.printStackTrace();
         }
 
         @Override
