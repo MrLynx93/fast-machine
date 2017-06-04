@@ -20,7 +20,7 @@ public class StartMqttServer {
     private static final boolean TLS = false;
     private static final String BROKER_ADDRESS = "34.250.196.139:1883"; //TODO
     private static final String SERVER_NAME = "main_server_1";
-    private static final long SLEEPTIME = 5 * 60 * 1000;
+    private static long SLEEPTIME = 1 * 60 * 1000; // Minuta 20 sekund
 
     private static ExecutorService executor = Executors.newFixedThreadPool(2);
     private static int lifetime;
@@ -35,6 +35,7 @@ public class StartMqttServer {
             TestInstanceProxy instance = exampleObj.getInstance(0);
 
             try {
+                System.out.println("Sending...");
                 instance.payload.read();
                 String formattedDate = DateFormat.getDateTimeInstance().format(new Date());
                 System.out.println("Last read sent: " + formattedDate);
@@ -44,12 +45,13 @@ public class StartMqttServer {
                 e.printStackTrace();
             }
 
+            System.out.println("Sleep time: " + SLEEPTIME);
             sleepForMills();
+            SLEEPTIME += 1000;
 
             System.out.println(i);
         }
         System.out.println("Finished test");
-
     }
 
     public static void main(String[] args) {
