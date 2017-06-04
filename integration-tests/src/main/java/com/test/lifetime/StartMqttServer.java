@@ -20,8 +20,8 @@ public class StartMqttServer {
     private static final boolean TLS = false;
     private static final String BROKER_ADDRESS = "34.250.196.139:1883"; //TODO
     private static final String SERVER_NAME = "main_server_1";
-//    private static long SLEEPTIME = 1 * 60 * 1000; // Minuta 20 sekund
-    private static long SLEEPTIME = 1000; // Minuta 20 sekund
+    private static long SLEEPTIME = 1 * 60 * 1000; // Minuta 20 sekund
+//    private static long SLEEPTIME = 1000; // Minuta 20 sekund
 
     private static ExecutorService executor = Executors.newFixedThreadPool(2);
     private static int lifetime;
