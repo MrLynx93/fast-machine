@@ -1,10 +1,10 @@
-cze 03, 2017 11:04:49 PM org.eclipse.californium.core.network.config.NetworkConfig createStandardWithFile
+cze 05, 2017 8:39:14 PM org.eclipse.californium.core.network.config.NetworkConfig createStandardWithFile
 INFO: Loading standard properties from file Californium.properties
-cze 03, 2017 11:04:50 PM org.eclipse.californium.core.CoapServer start
+cze 05, 2017 8:39:14 PM org.eclipse.californium.core.CoapServer start
 INFO: Starting server
-cze 03, 2017 11:04:50 PM org.eclipse.californium.core.network.CoapEndpoint start
+cze 05, 2017 8:39:14 PM org.eclipse.californium.core.network.CoapEndpoint start
 INFO: Starting endpoint at 0.0.0.0/0.0.0.0:29001
-cze 03, 2017 11:04:50 PM org.eclipse.californium.core.network.CoapEndpoint stop
+cze 05, 2017 8:39:14 PM org.eclipse.californium.core.network.CoapEndpoint stop
 INFO: Stopping endpoint at address 0.0.0.0/0.0.0.0:29001
-cze 03, 2017 11:04:50 PM org.eclipse.californium.core.CoapServer start
+cze 05, 2017 8:39:14 PM org.eclipse.californium.core.CoapServer start
 SEVERE: Address already in use (Bind failed) at 0.0.0.0/0.0.0.0:29001
