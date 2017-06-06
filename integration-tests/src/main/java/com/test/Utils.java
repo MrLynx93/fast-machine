@@ -35,7 +35,7 @@ public class Utils {
     public static final int WRITE = 1 << 1;
     public static final int EXECUTE = 1 << 2;
     public static final int DELETE = 1 << 3;
-    public static final int LIFETIME = 3600;
+    public static final int LIFETIME = 30;
 
 //    public static final String SERVER_IP = "localhost";
     public static final String SERVER_IP = "34.252.159.36";
